@@ -261,6 +261,53 @@
     </style>
 </head>
 <body>
+    <!-- Navigace - vlož na začátek <body> v kyvadlo.html -->
+<style>
+.nav-back {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.nav-back a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.nav-back a:hover {
+    background: #667eea;
+    color: white;
+    transform: translateX(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.nav-back .arrow {
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.nav-back a:hover .arrow {
+    transform: translateX(-3px);
+}
+</style>
+
+<nav class="nav-back">
+    <a href="../index.html">
+        <span class="arrow">←</span>
+        <span>Zpět na přehled</span>
+    </a>
+</nav>
     <div id="root"></div>
 
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
