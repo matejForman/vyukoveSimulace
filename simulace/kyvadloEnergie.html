@@ -36,7 +36,7 @@
         .grid {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1.2fr 0.8fr 1.4fr;
             gap: 1rem;
             min-height: 0;
         }
@@ -261,6 +261,53 @@
     </style>
 </head>
 <body>
+        <!-- Navigace - vlož na začátek <body> v kyvadlo.html -->
+<style>
+.nav-back {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.nav-back a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.nav-back a:hover {
+    background: #667eea;
+    color: white;
+    transform: translateX(-3px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.nav-back .arrow {
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.nav-back a:hover .arrow {
+    transform: translateX(-3px);
+}
+</style>
+
+<nav class="nav-back">
+    <a href="../index.html">
+        <span class="arrow">←</span>
+        <span>Zpět na přehled</span>
+    </a>
+</nav>
     <div id="root"></div>
 
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -288,36 +335,55 @@
                 const maxEnergy = Math.max(...data.map(d => Math.max(d.PE, d.KE, d.Total)), 1);
                 const maxTime = Math.max(...data.map(d => d.time), 1);
 
-                const padding = 40;
+                const padding = 50;
                 const chartWidth = width - 2 * padding;
-                const chartHeight = height - 2 * padding;
+                const chartHeight = height - 2 * padding - 30;
 
-                ctx.strokeStyle = '#d1d5db';
-                ctx.lineWidth = 1;
+                // Draw axes
+                ctx.strokeStyle = '#374151';
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(padding, padding);
-                ctx.lineTo(padding, height - padding);
-                ctx.lineTo(width - padding, height - padding);
+                ctx.lineTo(padding, height - padding - 30);
+                ctx.lineTo(width - padding, height - padding - 30);
                 ctx.stroke();
 
+                // Draw grid
                 ctx.strokeStyle = '#e5e7eb';
-                ctx.lineWidth = 0.5;
+                ctx.lineWidth = 1;
                 for (let i = 0; i <= 5; i++) {
                     const y = padding + (chartHeight * i / 5);
                     ctx.beginPath();
                     ctx.moveTo(padding, y);
                     ctx.lineTo(width - padding, y);
                     ctx.stroke();
+                    
+                    // Y-axis labels
+                    const energyValue = maxEnergy * (1 - i / 5);
+                    ctx.fillStyle = '#374151';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(energyValue.toFixed(1), padding - 5, y + 4);
+                }
+
+                // X-axis labels
+                for (let i = 0; i <= 5; i++) {
+                    const x = padding + (chartWidth * i / 5);
+                    const timeValue = maxTime * (i / 5);
+                    ctx.fillStyle = '#374151';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(timeValue.toFixed(1), x, height - padding - 10);
                 }
 
                 function drawLine(dataKey, color) {
                     ctx.strokeStyle = color;
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     
                     data.forEach((point, i) => {
                         const x = padding + (point.time / maxTime) * chartWidth;
-                        const y = height - padding - (point[dataKey] / maxEnergy) * chartHeight;
+                        const y = padding + chartHeight - (point[dataKey] / maxEnergy) * chartHeight;
                         
                         if (i === 0) {
                             ctx.moveTo(x, y);
@@ -333,29 +399,52 @@
                 drawLine('KE', '#EF4444');
                 drawLine('Total', '#6366F1');
 
-                ctx.fillStyle = '#374151';
-                ctx.font = '11px sans-serif';
+                // Axis labels
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 13px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('Čas (s)', width / 2, height - 10);
+                ctx.fillText('Čas (s)', width / 2, height - 5);
+                
                 ctx.save();
-                ctx.translate(15, height / 2);
+                ctx.translate(12, height / 2);
                 ctx.rotate(-Math.PI / 2);
                 ctx.fillText('Energie (J)', 0, 0);
                 ctx.restore();
 
-                const legendY = padding + 10;
-                ctx.font = '11px sans-serif';
+                // Legend
+                const legendX = width - padding - 120;
+                const legendY = padding + 15;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(legendX - 5, legendY - 15, 115, 65);
+                ctx.strokeStyle = '#d1d5db';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(legendX - 5, legendY - 15, 115, 65);
+                
+                ctx.font = '12px sans-serif';
                 ctx.textAlign = 'left';
+                
+                // PE
                 ctx.fillStyle = '#10B981';
-                ctx.fillText('■ PE', width - padding - 90, legendY);
+                ctx.fillRect(legendX, legendY, 15, 3);
+                ctx.fillStyle = '#374151';
+                ctx.fillText('Potenciální E', legendX + 20, legendY + 3);
+                
+                // KE
                 ctx.fillStyle = '#EF4444';
-                ctx.fillText('■ KE', width - padding - 50, legendY);
+                ctx.fillRect(legendX, legendY + 20, 15, 3);
+                ctx.fillStyle = '#374151';
+                ctx.fillText('Kinetická E', legendX + 20, legendY + 23);
+                
+                // Total
                 ctx.fillStyle = '#6366F1';
-                ctx.fillText('■ Celkem', width - padding - 90, legendY + 15);
+                ctx.fillRect(legendX, legendY + 40, 15, 3);
+                ctx.fillStyle = '#374151';
+                ctx.fillText('Celková E', legendX + 20, legendY + 43);
 
             }, [data]);
 
-            return <canvas ref={canvasRef} width="480" height="280" id="energyChart" />;
+            return <canvas ref={canvasRef} width="600" height="340" id="energyChart" />;
         }
 
         function PendulumEnergyDemo() {
@@ -386,10 +475,10 @@
           const kineticEnergy = 0.5 * mass * Math.pow(angularVelocity * actualLength, 2);
           const totalEnergy = potentialEnergy + kineticEnergy;
 
-          const canvasWidth = 400;
-          const canvasHeight = 320;
+          const canvasWidth = 500;
+          const canvasHeight = 360;
           const pivotX = canvasWidth / 2;
-          const pivotY = 50;
+          const pivotY = 60;
 
           const bobX = pivotX + length * Math.sin(angle);
           const bobY = pivotY + length * Math.cos(angle);
