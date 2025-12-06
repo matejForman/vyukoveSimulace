@@ -1,14 +1,162 @@
-<html>
-<body>      
-<h1>Vizualizace do výuky fyziky na střední škole </h1>
-<p>Autor: Matěj Forman</p>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktivní fyzikální simulace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<div>
-Zde najdete výukové materiály, jednoduché simulace a vizualizace určené pro výuku fyziky na střední škole. 
-Cílem je pomoci studentům lépe pochopit fyzikální koncepty prostřednictvím interaktivních a vizuálních nástrojů.
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-</div>
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+        }
 
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
 
+        h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 300;
+        }
+
+        .simulations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .simulation-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .simulation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .simulation-card h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .simulation-card p {
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .simulation-card .topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .topic-tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .simulations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 Interaktivní fyzikální simulace</h1>
+            <p class="subtitle">Jednoduché fyzikální simulace zobrazující některé specifické fyzikální principy.</p>
+        </header>
+
+        <div class="simulations-grid">
+            <a href="simulace/kyvadlo.html" class="simulation-card">
+                <span class="icon">⚖️</span>
+                <h2>Chaotické víceramenné kyvadlo</h2>
+                <p>Sledujte, jak nepatrné změny počátečních podmínek vedou k dramaticky odlišným trajektoriím. 
+                  Zvolte počet ramen, váhu posledního závaží kyvadla, rychlost simulace a sledujte vliv parametrů na dráhu kyvadla.
+                Simulace zobrazuje výměnu kinetické a potenciální energie. Při zvolení odporu vzduchu také ztrátu energie. </p>
+                <div class="topics">
+                    <span class="topic-tag">Mechanika</span>
+                    <span class="topic-tag">Chaos</span>
+                    <span class="topic-tag">Energie</span>
+                </div>
+            </a>
+
+            <!-- Další simulace budou přidány zde -->
+            
+        </div>
+
+        <footer>
+            <p>Waldorfské lyceum Brno | Kabinet fyziky</p>
+            <p>Vytvořeno pro vzdělávací účely</p>
+        </footer>
+    </div>
 </body>
 </html>
