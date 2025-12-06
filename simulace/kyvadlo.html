@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Arm Pendulum with Path Tracing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .control-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .value-display {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        #startBtn {
+            background: #4CAF50;
+            color: white;
+        }
+        #pauseBtn {
+            background: #ff9800;
+            color: white;
+        }
+        #clearBtn {
+            background: #f44336;
+            color: white;
+        }
+        #resetBtn {
+            background: #2196F3;
+            color: white;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Multi-Arm Pendulum Simulator</h1>
+        <p class="subtitle">Watch deterministic chaos emerge with 3+ arms</p>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Number of Arms: <span class="value-display" id="armsValue">2</span></label>
+                    <input type="range" id="armsSlider" min="1" max="5" value="2" step="1">
+                </div>
+                <div class="control-group">
+                    <label>Last Weight Mass: <span class="value-display" id="massValue">1.0</span> kg</label>
+                    <input type="range" id="massSlider" min="0.5" max="3" value="1" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label>Animation Speed: <span class="value-display" id="speedValue">1.0</span>×</label>
+                    <input type="range" id="speedSlider" min="0.1" max="3" value="1" step="0.1">
+                </div>
+            </div>
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Second-to-Last Arm Length: <span class="value-display" id="length2Value">100</span> px</label>
+                    <input type="range" id="length2Slider" min="50" max="200" value="100" step="5">
+                </div>
+                <div class="control-group">
+                    <label>Last Arm Length: <span class="value-display" id="length1Value">100</span> px</label>
+                    <input type="range" id="length1Slider" min="50" max="200" value="100" step="5">
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="startBtn">▶ Start</button>
+                <button id="pauseBtn">⏸ Pause</button>
+                <button id="clearBtn">🗑 Clear Paths</button>
+                <button id="resetBtn">↻ Reset</button>
+            </div>
+        </div>
+
+        <canvas id="pendulumCanvas" width="900" height="700"></canvas>
+        
+        <p class="info">
+            💡 Tip: With 3+ arms, tiny differences lead to dramatically different paths (chaos theory). Arms can rotate fully 360°!
+        </p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pendulumCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Control elements
+        const armsSlider = document.getElementById('armsSlider');
+        const massSlider = document.getElementById('massSlider');
+        const speedSlider = document.getElementById('speedSlider');
+        const length1Slider = document.getElementById('length1Slider');
+        const length2Slider = document.getElementById('length2Slider');
+        const armsValue = document.getElementById('armsValue');
+        const massValue = document.getElementById('massValue');
+        const speedValue = document.getElementById('speedValue');
+        const length1Value = document.getElementById('length1Value');
+        const length2Value = document.getElementById('length2Value');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Physics constants
+        const g = 9.81; // gravity
+        const origin = { x: canvas.width / 2, y: 150 };
+        
+        // State variables
+        let numArms = 2;
+        let lastMass = 1.0;
+        let animationSpeed = 1.0;
+        let isRunning = false;
+        let animationId = null;
+        
+        // Pendulum state
+        let angles = [];
+        let angularVelocities = [];
+        let masses = [];
+        let lengths = [];
+        let paths = []; // Array of arrays to store path for each bob
+        
+        // Initialize pendulum
+        function initPendulum() {
+            angles = [];
+            angularVelocities = [];
+            masses = [];
+            lengths = [];
+            paths = [];
+            
+            const lastLength = parseInt(length1Slider.value);
+            const secondLastLength = parseInt(length2Slider.value);
+            
+            for (let i = 0; i < numArms; i++) {
+                // Start with angles that allow for interesting motion
+                angles.push(Math.PI / 2 + (i * 0.2));
+                angularVelocities.push(0);
+                masses.push(i === numArms - 1 ? lastMass : 1.0);
+                
+                // Set lengths based on sliders for last two arms
+                if (i === numArms - 1) {
+                    lengths.push(lastLength);
+                } else if (i === numArms - 2) {
+                    lengths.push(secondLastLength);
+                } else {
+                    lengths.push(100);
+                }
+                
+                paths.push([]);
+            }
+        }
+        
+        // Calculate positions of all bobs
+        function calculatePositions() {
+            const positions = [];
+            let x = origin.x;
+            let y = origin.y;
+            
+            for (let i = 0; i < numArms; i++) {
+                x += lengths[i] * Math.sin(angles[i]);
+                y += lengths[i] * Math.cos(angles[i]);
+                positions.push({ x, y });
+            }
+            
+            return positions;
+        }
+        
+        // Compute equations of motion using Lagrangian mechanics
+        // This properly conserves energy
+        function deriv(angles, velocities) {
+            const n = angles.length;
+            
+            // Build mass matrix M and force vector F
+            // Equation: M * acceleration = F
+            const M = [];
+            const F = [];
+            
+            for (let i = 0; i < n; i++) {
+                M[i] = [];
+                
+                // Calculate mass matrix elements M[i][j]
+                for (let j = 0; j < n; j++) {
+                    let m_ij = 0;
+                    
+                    // Sum over all masses affected by both angles i and j
+                    for (let k = Math.max(i, j); k < n; k++) {
+                        if (i === j) {
+                            m_ij += masses[k] * lengths[i] * lengths[i];
+                        } else {
+                            m_ij += masses[k] * lengths[i] * lengths[j] * Math.cos(angles[i] - angles[j]);
+                        }
+                    }
+                    
+                    M[i][j] = m_ij;
+                }
+                
+                // Calculate force vector F[i]
+                let force = 0;
+                
+                // Gravity term
+                let massSum = 0;
+                for (let k = i; k < n; k++) {
+                    massSum += masses[k];
+                }
+                force -= massSum * g * lengths[i] * Math.sin(angles[i]);
+                
+                // Coriolis and centrifugal terms
+                for (let j = 0; j < n; j++) {
+                    if (i !== j) {
+                        let massSumCor = 0;
+                        for (let k = Math.max(i, j); k < n; k++) {
+                            massSumCor += masses[k];
+                        }
+                        force -= massSumCor * lengths[i] * lengths[j] * velocities[j] * velocities[j] * 
+                                Math.sin(angles[i] - angles[j]);
+                        
+                        // Coriolis term (velocity coupling)
+                        for (let l = 0; l < n; l++) {
+                            if (l !== i && l !== j) {
+                                let massSumCor2 = 0;
+                                for (let k = Math.max(Math.max(i, j), l); k < n; k++) {
+                                    massSumCor2 += masses[k];
+                                }
+                                if (massSumCor2 > 0) {
+                                    force -= massSumCor2 * lengths[i] * lengths[j] * velocities[j] * velocities[l] * 
+                                            Math.sin(angles[j] - angles[l]) * 0; // This term is actually zero for this system
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                F[i] = force;
+            }
+            
+            // Solve M * acceleration = F using Gaussian elimination
+            const accelerations = solveLinearSystem(M, F);
+            
+            return accelerations;
+        }
+        
+        // Solve linear system Ax = b using Gaussian elimination with partial pivoting
+        function solveLinearSystem(A, b) {
+            const n = A.length;
+            // Create augmented matrix
+            const aug = A.map((row, i) => [...row, b[i]]);
+            
+            // Forward elimination with partial pivoting
+            for (let i = 0; i < n; i++) {
+                // Find pivot
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(aug[k][i]) > Math.abs(aug[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                
+                // Swap rows
+                [aug[i], aug[maxRow]] = [aug[maxRow], aug[i]];
+                
+                // Make all rows below this one 0 in current column
+                for (let k = i + 1; k < n; k++) {
+                    const factor = aug[k][i] / aug[i][i];
+                    for (let j = i; j <= n; j++) {
+                        aug[k][j] -= factor * aug[i][j];
+                    }
+                }
+            }
+            
+            // Back substitution
+            const x = new Array(n);
+            for (let i = n - 1; i >= 0; i--) {
+                x[i] = aug[i][n];
+                for (let j = i + 1; j < n; j++) {
+                    x[i] -= aug[i][j] * x[j];
+                }
+                x[i] /= aug[i][i];
+            }
+            
+            return x;
+        }
+        
+        // Update physics using RK4
+        function updatePhysics(dt) {
+            const n = numArms;
+            
+            // RK4 integration
+            const k1_angles = angularVelocities.slice();
+            const k1_velocities = deriv(angles, angularVelocities);
+            
+            const angles2 = angles.map((a, i) => a + 0.5 * dt * k1_angles[i]);
+            const velocities2 = angularVelocities.map((v, i) => v + 0.5 * dt * k1_velocities[i]);
+            const k2_angles = velocities2.slice();
+            const k2_velocities = deriv(angles2, velocities2);
+            
+            const angles3 = angles.map((a, i) => a + 0.5 * dt * k2_angles[i]);
+            const velocities3 = angularVelocities.map((v, i) => v + 0.5 * dt * k2_velocities[i]);
+            const k3_angles = velocities3.slice();
+            const k3_velocities = deriv(angles3, velocities3);
+            
+            const angles4 = angles.map((a, i) => a + dt * k3_angles[i]);
+            const velocities4 = angularVelocities.map((v, i) => v + dt * k3_velocities[i]);
+            const k4_angles = velocities4.slice();
+            const k4_velocities = deriv(angles4, velocities4);
+            
+            // Update state
+            for (let i = 0; i < n; i++) {
+                angles[i] += (dt / 6) * (k1_angles[i] + 2*k2_angles[i] + 2*k3_angles[i] + k4_angles[i]);
+                angularVelocities[i] += (dt / 6) * (k1_velocities[i] + 2*k2_velocities[i] + 
+                                                     2*k3_velocities[i] + k4_velocities[i]);
+            }
+        }
+        
+        // Draw everything
+        function draw() {
+            // Draw paths first (don't clear them)
+            const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff6600', '#00ff00'];
+            
+            for (let i = 0; i < paths.length; i++) {
+                if (paths[i].length > 1) {
+                    ctx.strokeStyle = colors[i % colors.length];
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.6;
+                    ctx.beginPath();
+                    ctx.moveTo(paths[i][0].x, paths[i][0].y);
+                    for (let j = 1; j < paths[i].length; j++) {
+                        ctx.lineTo(paths[i][j].x, paths[i][j].y);
+                    }
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            }
+            
+            // Clear only the pendulum area (not the paths)
+            const positions = calculatePositions();
+            
+            // Draw pendulum arms
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            for (let i = 0; i < positions.length; i++) {
+                ctx.lineTo(positions[i].x, positions[i].y);
+            }
+            ctx.stroke();
+            
+            // Draw pivot
+            ctx.fillStyle = '#666';
+            ctx.beginPath();
+            ctx.arc(origin.x, origin.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw bobs
+            for (let i = 0; i < positions.length; i++) {
+                const isLast = i === positions.length - 1;
+                const radius = isLast ? 8 + (lastMass - 0.5) * 4 : 8;
+                
+                // Glow effect for last bob
+                if (isLast) {
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = colors[i % colors.length];
+                }
+                
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.beginPath();
+                ctx.arc(positions[i].x, positions[i].y, radius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+                
+                // Stroke
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Animation loop
+        let lastTime = 0;
+        function animate(currentTime) {
+            if (!isRunning) return;
+            
+            const deltaTime = lastTime ? (currentTime - lastTime) / 1000 : 0.016;
+            lastTime = currentTime;
+            
+            // Update physics multiple times per frame for stability
+            // Smaller time steps are crucial for energy conservation
+            const steps = 10;
+            const dt = (deltaTime * animationSpeed) / steps;
+            for (let i = 0; i < steps; i++) {
+                updatePhysics(dt);
+            }
+            
+            // Store path points
+            const positions = calculatePositions();
+            for (let i = 0; i < positions.length; i++) {
+                paths[i].push({ x: positions[i].x, y: positions[i].y });
+                // Limit path length to prevent memory issues
+                if (paths[i].length > 5000) {
+                    paths[i].shift();
+                }
+            }
+            
+            // Clear canvas and draw
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Control handlers
+        armsSlider.addEventListener('input', (e) => {
+            const newNumArms = parseInt(e.target.value);
+            armsValue.textContent = newNumArms;
+            if (newNumArms !== numArms) {
+                numArms = newNumArms;
+                if (!isRunning) {
+                    initPendulum();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    draw();
+                }
+            }
+        });
+        
+        massSlider.addEventListener('input', (e) => {
+            lastMass = parseFloat(e.target.value);
+            massValue.textContent = lastMass.toFixed(1);
+            if (numArms > 0) {
+                masses[numArms - 1] = lastMass;
+            }
+        });
+        
+        speedSlider.addEventListener('input', (e) => {
+            animationSpeed = parseFloat(e.target.value);
+            speedValue.textContent = animationSpeed.toFixed(1);
+        });
+        
+        length1Slider.addEventListener('input', (e) => {
+            const newLength = parseInt(e.target.value);
+            length1Value.textContent = newLength;
+            if (numArms >= 1) {
+                lengths[numArms - 1] = newLength;
+            }
+        });
+        
+        length2Slider.addEventListener('input', (e) => {
+            const newLength = parseInt(e.target.value);
+            length2Value.textContent = newLength;
+            if (numArms >= 2) {
+                lengths[numArms - 2] = newLength;
+            }
+        });
+        
+        startBtn.addEventListener('click', () => {
+            if (!isRunning) {
+                isRunning = true;
+                lastTime = 0;
+                animate(0);
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            for (let i = 0; i < paths.length; i++) {
+                paths[i] = [];
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            initPendulum();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+        });
+        
+        // Initialize
+        initPendulum();
+        draw();
+    </script>
+</body>
+</html>
