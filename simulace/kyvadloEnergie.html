@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kyvadlo - Demonstrace Zachování Energie</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
     <style>
         * {
             margin: 0;
@@ -239,6 +235,15 @@
         .chart-container {
             flex: 1;
             min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #energyChart {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.25rem;
+            background: white;
         }
         
         .info-box {
@@ -258,11 +263,102 @@
 <body>
     <div id="root"></div>
 
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
 
-        const PendulumEnergyDemo = () => {
+        function SimpleChart({ data }) {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas || data.length === 0) return;
+
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, width, height);
+
+                const maxEnergy = Math.max(...data.map(d => Math.max(d.PE, d.KE, d.Total)), 1);
+                const maxTime = Math.max(...data.map(d => d.time), 1);
+
+                const padding = 40;
+                const chartWidth = width - 2 * padding;
+                const chartHeight = height - 2 * padding;
+
+                ctx.strokeStyle = '#d1d5db';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding + (chartHeight * i / 5);
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+
+                function drawLine(dataKey, color) {
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    data.forEach((point, i) => {
+                        const x = padding + (point.time / maxTime) * chartWidth;
+                        const y = height - padding - (point[dataKey] / maxEnergy) * chartHeight;
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    
+                    ctx.stroke();
+                }
+
+                drawLine('PE', '#10B981');
+                drawLine('KE', '#EF4444');
+                drawLine('Total', '#6366F1');
+
+                ctx.fillStyle = '#374151';
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Čas (s)', width / 2, height - 10);
+                ctx.save();
+                ctx.translate(15, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Energie (J)', 0, 0);
+                ctx.restore();
+
+                const legendY = padding + 10;
+                ctx.font = '11px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#10B981';
+                ctx.fillText('■ PE', width - padding - 90, legendY);
+                ctx.fillStyle = '#EF4444';
+                ctx.fillText('■ KE', width - padding - 50, legendY);
+                ctx.fillStyle = '#6366F1';
+                ctx.fillText('■ Celkem', width - padding - 90, legendY + 15);
+
+            }, [data]);
+
+            return <canvas ref={canvasRef} width="480" height="280" id="energyChart" />;
+        }
+
+        function PendulumEnergyDemo() {
           const [isRunning, setIsRunning] = useState(false);
           const [state, setState] = useState({
             angle: Math.PI / 3,
@@ -334,7 +430,7 @@
                 });
 
                 if (withResistance) {
-                  setEnergyLoss(prevLoss => {
+                  setEnergyLoss(() => {
                     const currentTotal = potentialEnergy + kineticEnergy;
                     const loss = initialEnergy - currentTotal;
                     return loss > 0 ? loss : 0;
@@ -371,9 +467,9 @@
                 }
               };
             }
-          }, [isRunning, angularVelocity, angle, potentialEnergy, kineticEnergy, totalEnergy, withResistance, initialEnergy]);
+          }, [isRunning, angularVelocity, angle, potentialEnergy, kineticEnergy, totalEnergy, withResistance, initialEnergy, actualLength, gravity, damping]);
 
-          const toggleSimulation = () => {
+          function toggleSimulation() {
             if (!isRunning) {
               const initialHeight = actualLength * (1 - Math.cos(angle));
               const initialPE = mass * gravity * initialHeight;
@@ -382,9 +478,9 @@
               setEnergyLoss(0);
             }
             setIsRunning(!isRunning);
-          };
+          }
 
-          const reset = () => {
+          function reset() {
             setIsRunning(false);
             setState({
               angle: Math.PI / 3,
@@ -397,9 +493,9 @@
             if (animationRef.current) {
               cancelAnimationFrame(animationRef.current);
             }
-          };
+          }
 
-          const toggleResistance = () => {
+          function toggleResistance() {
             setWithResistance(!withResistance);
             if (isRunning) {
               setIsRunning(false);
@@ -407,19 +503,19 @@
                 cancelAnimationFrame(animationRef.current);
               }
             }
-          };
+          }
 
-          const handleMassChange = (e) => {
+          function handleMassChange(e) {
             if (!isRunning) {
               setMass(parseFloat(e.target.value));
             }
-          };
+          }
 
-          const handleLengthChange = (e) => {
+          function handleLengthChange(e) {
             if (!isRunning) {
               setLengthMeters(parseFloat(e.target.value));
             }
-          };
+          }
 
           return (
             <div className="container">
@@ -515,18 +611,7 @@
                 <div className="panel">
                   <h2 className="panel-title">Energie v Čase</h2>
                   <div className="chart-container">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={energyData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" label={{ value: 'Čas (s)', position: 'insideBottom', offset: -5, style: { fontSize: '12px' } }} tick={{ fontSize: 10 }} />
-                        <YAxis label={{ value: 'Energie (J)', angle: -90, position: 'insideLeft', style: { fontSize: '12px' } }} tick={{ fontSize: 10 }} />
-                        <Tooltip contentStyle={{ fontSize: '12px' }} />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line type="monotone" dataKey="PE" stroke="#10B981" name="PE" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="KE" stroke="#EF4444" name="KE" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="Total" stroke="#6366F1" name="Celkem" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <SimpleChart data={energyData} />
                   </div>
                   <div className="info-box">
                     <strong>Info:</strong> Energie se přeměňuje mezi PE a KE. {withResistance ? 'S odporem celková energie klesá.' : 'Bez odporu je celková energie zachována.'}
@@ -535,7 +620,7 @@
               </div>
             </div>
           );
-        };
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<PendulumEnergyDemo />);
