@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Vizualizér – Pedagogický</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;600;800&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --border: #1e2d40;
+  --accent: #00e5ff;
+  --text: #e2e8f0;
+  --muted: #4a5568;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+header {
+  position: relative; z-index: 1;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: baseline; gap: 1.5rem;
+}
+
+header h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.3rem; color: var(--accent);
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+header p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
+
+.badge {
+  margin-left: auto;
+  background: rgba(0,229,255,0.1);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; padding: 0.2rem 0.6rem;
+  border-radius: 2px; letter-spacing: 0.1em;
+}
+
+.input-section {
+  position: relative; z-index: 1;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1.5rem;
+}
+
+.input-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+}
+
+#text-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  padding: 0.7rem 1.1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--accent);
+}
+
+#text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,229,255,0.15);
+}
+
+.char-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; color: var(--muted); white-space: nowrap;
+}
+
+.char-count span { color: var(--accent); }
+
+main {
+  position: relative; z-index: 1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  gap: 0;
+  min-height: 0;
+}
+
+/* ===== QR PANEL ===== */
+.qr-panel {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+.panel-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--muted);
+  align-self: flex-start;
+}
+
+#qr-wrap {
+  position: relative;
+  background: #fff;
+  padding: 12px;
+  border-radius: 4px;
+  box-shadow: 0 0 40px rgba(0,229,255,0.15);
+  transition: box-shadow 0.3s;
+}
+
+#qr-wrap.pulse { box-shadow: 0 0 60px rgba(0,229,255,0.45); }
+
+/* The SVG QR canvas */
+#qr-svg { display: block; }
+
+/* overlay canvas for highlights */
+#qr-overlay {
+  position: absolute;
+  top: 12px; left: 12px;
+  pointer-events: none;
+}
+
+/* Structure legend */
+.struct-legend {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.struct-item {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--muted);
+}
+
+.struct-dot {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+}
+
+/* QR info cards */
+.qr-info {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+}
+
+.info-card .label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.2rem;
+}
+
+.info-card .value {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem; color: var(--accent); font-weight: 700;
+}
+
+/* Char legend inside binary panel */
+#char-legend {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+#char-legend .legend-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+#char-legend .legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.legend-item {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.legend-item:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); }
+.legend-item.active { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+
+.legend-dot {
+  width: 11px; height: 11px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Structure legend */
+.struct-legend {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.struct-item {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--muted);
+}
+
+.struct-dot {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+}
+
+/* ===== BINARY PANEL ===== */
+.binary-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 2.5rem;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+.binary-stream-wrap {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#binary-chars { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.char-row {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  opacity: 0; transform: translateX(20px);
+  transition: opacity 0.3s, transform 0.3s, background 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.char-row.visible { opacity: 1; transform: translateX(0); }
+.char-row:hover { background: rgba(255,255,255,0.03); }
+.char-row.highlighted { border-color: rgba(255,255,255,0.3) !important; }
+
+.char-symbol {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem; font-weight: 700;
+  width: 2.2rem; text-align: center;
+  border-radius: 3px;
+  padding: 0.2rem;
+  flex-shrink: 0;
+}
+
+.char-ascii {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; color: var(--muted);
+  width: 3.5rem; flex-shrink: 0;
+}
+
+.bits-wrap { display: flex; gap: 3px; flex-wrap: nowrap; }
+
+.bit {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.bit.b0 { background: #1a2744; color: var(--muted); border: 1px solid #1e2d40; }
+.bit.b1 { background: var(--accent); color: #0a0e1a; }
+
+.char-decimal {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem; color: var(--muted);
+  margin-left: auto; flex-shrink: 0;
+}
+
+.totals-bar {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  display: flex; gap: 2rem; flex-wrap: wrap;
+}
+
+.total-item .label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+.total-item .value {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.95rem; color: var(--accent); font-weight: 700;
+}
+
+/* Hex bar */
+.hex-section {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 0.8rem 3rem;
+  display: flex; align-items: center; gap: 1.5rem; overflow: hidden;
+}
+
+.hex-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+}
+
+#hex-output {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; color: #a78bfa;
+  letter-spacing: 0.1em; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* placeholder */
+.placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1rem; color: var(--muted); height: 100%;
+}
+
+.placeholder-icon {
+  width: 80px; height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+}
+
+.placeholder p {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem; letter-spacing: 0.08em;
+}
+
+/* Tooltip */
+#tooltip {
+  position: fixed;
+  background: #1e2d40;
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+  line-height: 1.6;
+  max-width: 220px;
+}
+
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+  .qr-panel { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>QR Vizualizér</h1>
+  <p>Pedagogická vizualizace kódování dat</p>
+  <span class="badge">QR v1–v3 · Byte Mode · RS ECC</span>
+</header>
+
+<div class="input-section">
+  <span class="input-label">↳ TEXT</span>
+  <input type="text" id="text-input" placeholder="Začni psát text… (max 17 znaků pro nejlepší vizualizaci)" maxlength="40" autofocus />
+  <span class="char-count">Znaky: <span id="char-count">0</span> / 40</span>
+</div>
+
+<main>
+  <!-- QR Panel -->
+  <div class="qr-panel">
+    <span class="panel-title">// QR kód – skutečná struktura</span>
+
+    <div id="qr-wrap">
+      <canvas id="qr-svg"></canvas>
+      <canvas id="qr-overlay"></canvas>
+    </div>
+
+    <!-- Structure legend -->
+    <div class="qr-legend">
+      <div class="legend-title">Struktura QR kódu:</div>
+      <div class="struct-legend">
+        <div class="struct-item"><div class="struct-dot" style="background:#2d2d2d;border:1px solid #555"></div>Finder pattern</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#1a3a1a;border:1px solid #2d6a2d"></div>Timing pattern</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#3a1a1a;border:1px solid #7a2a2a"></div>Format info</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#2a2a3a;border:1px solid #5a5a8a"></div>Dark module</div>
+        <div class="struct-item"><div class="struct-dot" style="background:rgba(100,200,100,0.3);border:1px solid #64c864"></div>ECC kódová slova</div>
+        <div class="struct-item"><div class="struct-dot" style="background:rgba(150,100,255,0.3);border:1px solid #9664ff"></div>Datová záhlaví</div>
+      </div>
+    </div>
+
+    <div class="qr-info" id="qr-info" style="display:none">
+      <div class="info-card">
+        <div class="label">Verze QR</div>
+        <div class="value" id="info-version">—</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Mřížka</div>
+        <div class="value" id="info-modules">—</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Data [codewords]</div>
+        <div class="value" id="info-datacw">—</div>
+      </div>
+      <div class="info-card">
+        <div class="label">ECC [codewords]</div>
+        <div class="value" id="info-ecccw">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Binary Panel -->
+  <div class="binary-panel">
+    <span class="panel-title">// Binární reprezentace (UTF-8)</span>
+
+    <!-- Char legend inline in binary panel -->
+    <div id="char-legend" style="display:none">
+      <div class="legend-title">Znaky – klikni nebo najeď myší pro zvýraznění v QR:</div>
+      <div class="legend-items" id="legend-items"></div>
+    </div>
+
+    <div class="binary-stream-wrap">
+      <div id="binary-chars">
+        <div class="placeholder" style="height:200px">
+          <div class="placeholder-icon">▦</div>
+          <p>binární data se zobrazí zde…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="totals-bar">
+      <div class="total-item">
+        <div class="label">Bajtů dat</div>
+        <div class="value" id="total-bytes">0</div>
+      </div>
+      <div class="total-item">
+        <div class="label">Bitů celkem</div>
+        <div class="value" id="total-bits">0</div>
+      </div>
+      <div class="total-item">
+        <div class="label">1 / 0</div>
+        <div class="value" id="ones-zeros">0 / 0</div>
+      </div>
+      <div class="total-item">
+        <div class="label">ECC codewords</div>
+        <div class="value" id="total-ecc">—</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="hex-section">
+  <span class="hex-label">HEX ↦</span>
+  <div id="hex-output">—</div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+// ============================================================
+//  FULL QR ENCODER (Version 1-3, Byte Mode, Error Level M)
+// ============================================================
+
+// --- GF(256) arithmetic ---
+const GF_EXP = new Uint8Array(512);
+const GF_LOG = new Uint8Array(256);
+(function initGF() {
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    GF_EXP[i] = x;
+    GF_LOG[x] = i;
+    x <<= 1;
+    if (x & 0x100) x ^= 0x11d;
+  }
+  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+})();
+
+function gfMul(a, b) {
+  if (a === 0 || b === 0) return 0;
+  return GF_EXP[(GF_LOG[a] + GF_LOG[b]) % 255];
+}
+
+function rsGeneratorPoly(degree) {
+  let g = [1];
+  for (let i = 0; i < degree; i++) {
+    const factor = [1, GF_EXP[i]];
+    const res = new Array(g.length + factor.length - 1).fill(0);
+    for (let j = 0; j < g.length; j++)
+      for (let k = 0; k < factor.length; k++)
+        res[j+k] ^= gfMul(g[j], factor[k]);
+    g = res;
+  }
+  return g;
+}
+
+function rsEncode(data, nEcc) {
+  const gen = rsGeneratorPoly(nEcc);
+  const msg = [...data, ...new Array(nEcc).fill(0)];
+  for (let i = 0; i < data.length; i++) {
+    const coef = msg[i];
+    if (coef !== 0) {
+      for (let j = 1; j < gen.length; j++)
+        msg[i+j] ^= gfMul(gen[j], coef);
+    }
+  }
+  return msg.slice(data.length);
+}
+
+// --- QR Version parameters (Error level M) ---
+// [dataCW, eccCW, totalCW, version]
+const QR_PARAMS = [
+  // ver: dataCW, eccCW
+  { ver: 1, dataCW: 16, eccCW: 10 }, // 13 data bytes actually (with mode+length overhead)
+  { ver: 2, dataCW: 28, eccCW: 16 },
+  { ver: 3, dataCW: 44, eccCW: 26 },
+  { ver: 4, dataCW: 64, eccCW: 36 },
+];
+
+// QR capacity in bytes for byte mode, error level M
+const QR_CAPACITY = [0, 11, 20, 32, 48]; // index = version
+
+function getVersion(byteLen) {
+  for (let v = 1; v <= 4; v++) {
+    if (byteLen <= QR_CAPACITY[v]) return v;
+  }
+  return null; // too long
+}
+
+// --- Build data bitstream ---
+// Returns: { bits: Uint8Array of bits, charBitRanges: [{start, end, charIdx}], headerBits: [{start,end}] }
+function buildDataBitstream(bytes, version) {
+  const bits = [];
+  const charBitRanges = []; // ranges in the codeword bit array
+  const headerBits = []; // mode + length indicator bits
+
+  // Mode indicator: 0100 (byte mode)
+  const modeStart = 0;
+  [0,1,0,0].forEach(b => bits.push(b));
+  const modeEnd = bits.length;
+
+  // Character count indicator (8 bits for version 1-9)
+  const lenStart = bits.length;
+  for (let i = 7; i >= 0; i--) bits.push((bytes.length >> i) & 1);
+  const lenEnd = bits.length;
+  headerBits.push({ start: modeStart, end: modeEnd, label: 'Mode (0100=byte)' });
+  headerBits.push({ start: lenStart, end: lenEnd, label: `Délka (${bytes.length} znaků)` });
+
+  // Data bytes
+  for (let ci = 0; ci < bytes.length; ci++) {
+    const start = bits.length;
+    const b = bytes[ci];
+    for (let i = 7; i >= 0; i--) bits.push((b >> i) & 1);
+    charBitRanges.push({ start, end: bits.length, charIdx: ci });
+  }
+
+  // Terminator (up to 4 zeros)
+  const dataCW = QR_PARAMS[version-1].dataCW;
+  const maxBits = dataCW * 8;
+  const termLen = Math.min(4, maxBits - bits.length);
+  for (let i = 0; i < termLen; i++) bits.push(0);
+
+  // Pad to byte boundary
+  while (bits.length % 8 !== 0) bits.push(0);
+
+  // Pad codewords: alternating 0xEC, 0x11
+  const padSeq = [0xEC, 0x11];
+  let padIdx = 0;
+  while (bits.length < maxBits) {
+    const pb = padSeq[padIdx % 2]; padIdx++;
+    for (let i = 7; i >= 0; i--) bits.push((pb >> i) & 1);
+  }
+
+  // Convert bits to codewords
+  const codewords = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let cw = 0;
+    for (let j = 0; j < 8; j++) cw = (cw << 1) | (bits[i+j] || 0);
+    codewords.push(cw);
+  }
+
+  return { bits, codewords, charBitRanges, headerBits };
+}
+
+// --- QR Matrix builder ---
+const SIZE = [0, 21, 25, 29, 33]; // version -> size
+
+// Finder pattern (7x7)
+function placeFinder(mat, row, col) {
+  const s = 7;
+  for (let r = 0; r < s; r++) {
+    for (let c = 0; c < s; c++) {
+      const onBorder = (r===0||r===6||c===0||c===6);
+      const inner = (r>=2&&r<=4&&c>=2&&c<=4);
+      mat[row+r][col+c] = { val: (onBorder||inner) ? 1 : 0, type: 'finder' };
+    }
+  }
+}
+
+function placeSeparator(mat, sz) {
+  // Horizontal and vertical separators around finders
+  const positions = [
+    {r:7,c:0,w:8,h:1},{r:0,c:7,w:1,h:8}, // top-left
+    {r:7,c:sz-8,w:8,h:1},{r:0,c:sz-8,w:1,h:8}, // top-right
+    {r:sz-8,c:0,w:8,h:1},{r:sz-8,c:7,w:1,h:8}, // bottom-left
+  ];
+  for (const p of positions) {
+    for (let r = p.r; r < p.r+p.h; r++)
+      for (let c = p.c; c < p.c+p.w; c++)
+        if (r>=0&&r<sz&&c>=0&&c<sz&&!mat[r][c]) mat[r][c] = { val: 0, type: 'finder' };
+  }
+}
+
+function placeTimingPatterns(mat, sz) {
+  for (let i = 8; i < sz-8; i++) {
+    if (!mat[6][i]) mat[6][i] = { val: i%2===0?1:0, type: 'timing' };
+    if (!mat[i][6]) mat[i][6] = { val: i%2===0?1:0, type: 'timing' };
+  }
+}
+
+function placeDarkModule(mat, version) {
+  const r = 4*version+9;
+  mat[r][8] = { val: 1, type: 'dark' };
+}
+
+function placeFormatInfo(mat, sz, formatBits) {
+  // Format info around top-left finder
+  const formatPositions = [
+    [8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],
+    [7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]
+  ];
+  // Top-right
+  const formatPositions2 = [
+    [0,sz-8],[0,sz-7],[0,sz-6],[0,sz-5],[0,sz-4],[0,sz-3],[0,sz-2],[0,sz-1]
+  ];
+  // Bottom-left
+  const formatPositions3 = [
+    [sz-7,8],[sz-6,8],[sz-5,8],[sz-4,8],[sz-3,8],[sz-2,8],[sz-1,8]
+  ];
+
+  const allFmt = [...formatPositions];
+  for (let i = 0; i < allFmt.length && i < formatBits.length; i++) {
+    const [r,c] = allFmt[i];
+    if (r<sz&&c<sz) mat[r][c] = { val: formatBits[i], type: 'format' };
+  }
+  for (let i = 0; i < formatPositions2.length; i++) {
+    const [r,c] = formatPositions2[i];
+    if (r<sz&&c<sz&&!mat[r][c]) mat[r][c] = { val: formatBits[i] ?? 0, type: 'format' };
+  }
+  for (let i = 0; i < formatPositions3.length; i++) {
+    const [r,c] = formatPositions3[i];
+    if (r<sz&&c<sz&&!mat[r][c]) mat[r][c] = { val: formatBits[7+i] ?? 0, type: 'format' };
+  }
+}
+
+// Alignment pattern (version >= 2)
+function placeAlignment(mat, version) {
+  const centers = {2:[6,18],3:[6,22],4:[6,26]};
+  if (!centers[version]) return;
+  const [r,c] = centers[version];
+  for (let dr = -2; dr <= 2; dr++) {
+    for (let dc = -2; dc <= 2; dc++) {
+      const onBorder = Math.abs(dr)===2||Math.abs(dc)===2;
+      const center = dr===0&&dc===0;
+      if (!mat[r+dr]?.[c+dc]) mat[r+dr][c+dc] = { val: (onBorder||center)?1:0, type: 'alignment' };
+    }
+  }
+}
+
+// Data placement path (zigzag, bottom to top then top to bottom)
+function getDataPath(sz) {
+  const path = [];
+  let up = true;
+  let col = sz - 1;
+  while (col >= 0) {
+    if (col === 6) col--; // skip timing column
+    const range = up ? [...Array(sz).keys()].reverse() : [...Array(sz).keys()];
+    for (const row of range) {
+      for (let dc = 0; dc <= 1; dc++) {
+        const c = col - dc;
+        if (c >= 0) path.push([row, c]);
+      }
+    }
+    up = !up;
+    col -= 2;
+  }
+  return path;
+}
+
+// Mask patterns
+const MASKS = [
+  (r,c) => (r+c)%2===0,
+  (r,c) => r%2===0,
+  (r,c) => c%3===0,
+  (r,c) => (r+c)%3===0,
+  (r,c) => (Math.floor(r/2)+Math.floor(c/3))%2===0,
+  (r,c) => (r*c)%2+(r*c)%3===0,
+  (r,c) => ((r*c)%2+(r*c)%3)%2===0,
+  (r,c) => ((r+c)%2+(r*c)%3)%2===0,
+];
+
+// Format info bits (error level M = 00, mask pattern appended)
+// Precomputed format strings for M level (bits 14-0)
+const FORMAT_STRINGS_M = [
+  [1,0,1,0,1,0,0,0,0,0,1,0,0,1,0], // mask 0
+  [1,0,1,0,0,0,1,1,0,1,1,1,0,1,1], // mask 1
+  [1,0,1,1,1,1,1,0,0,1,0,0,0,1,0], // mask 2 -- Note: we'll just use mask 0 for simplicity
+  [1,0,1,1,0,1,0,1,0,0,0,1,1,0,0], // mask 3
+  [1,0,0,0,1,0,0,0,1,0,0,1,0,1,1], // mask 4
+  [1,0,0,0,0,0,1,1,1,1,0,0,1,0,0], // mask 5 -- we pick the optimal mask
+  [1,0,0,1,1,1,1,0,1,1,1,1,1,1,0], // mask 6
+  [1,0,0,1,0,1,0,1,1,0,1,0,1,1,1], // mask 7
+];
+
+function evaluateMaskPenalty(mat, sz) {
+  // Simplified penalty - just count runs
+  let penalty = 0;
+  // Rule 1: 5+ same in a row/col
+  for (let r = 0; r < sz; r++) {
+    let run = 1;
+    for (let c = 1; c < sz; c++) {
+      if (mat[r][c]?.val === mat[r][c-1]?.val) { run++; if (run===5) penalty+=3; else if(run>5) penalty++; }
+      else run = 1;
+    }
+  }
+  return penalty;
+}
+
+// Returns the module-to-codeword/bit mapping
+function buildMatrix(version, allCodewords, charBitRanges, headerBits) {
+  const sz = SIZE[version];
+  // mat[r][c] = { val: 0|1, type: 'finder'|'timing'|'format'|'dark'|'data'|'ecc'|'header', cwIdx, bitIdx, charIdx }
+  const mat = Array.from({length:sz},()=>Array(sz).fill(null));
+
+  // Place structural elements
+  placeFinder(mat, 0, 0);
+  placeFinder(mat, 0, sz-7);
+  placeFinder(mat, sz-7, 0);
+  placeSeparator(mat, sz);
+  placeTimingPatterns(mat, sz);
+  placeDarkModule(mat, version);
+  if (version >= 2) placeAlignment(mat, version);
+  placeFormatInfo(mat, sz, FORMAT_STRINGS_M[2]); // will fix after mask
+
+  // Get data placement path
+  const path = getDataPath(sz);
+
+  // Place raw data bits
+  const allBits = [];
+  for (const cw of allCodewords) {
+    for (let i = 7; i >= 0; i--) allBits.push((cw >> i) & 1);
+  }
+
+  // Determine which codeword indices are ECC
+  const dataCW = QR_PARAMS[version-1].dataCW;
+  const eccCW = QR_PARAMS[version-1].eccCW;
+
+  // Build char bit -> charIdx lookup from charBitRanges
+  const bitToCharIdx = new Map();
+  for (const r of charBitRanges) {
+    for (let b = r.start; b < r.end; b++) bitToCharIdx.set(b, r.charIdx);
+  }
+  const headerBitSet = new Set();
+  for (const h of headerBits) {
+    for (let b = h.start; b < h.end; b++) headerBitSet.add(b);
+  }
+
+  // Place data
+  let bitIdx = 0;
+  const cellDataBitIdx = []; // for path cells
+  for (const [r,c] of path) {
+    if (!mat[r][c]) {
+      if (bitIdx < allBits.length) {
+        const cwIdx = Math.floor(bitIdx / 8);
+        const isEcc = cwIdx >= dataCW;
+        let type = isEcc ? 'ecc' : 'data';
+        let charIdx = -1;
+
+        if (!isEcc) {
+          // the bitIdx here is in the final codeword bitstream
+          // we need to map it to the original data bitstream
+          // dataBitIdx = bitIdx (codewords are in order)
+          const dataBitIdx = bitIdx; // bit position in data codeword stream
+          if (headerBitSet.has(dataBitIdx)) type = 'header';
+          else if (bitToCharIdx.has(dataBitIdx)) charIdx = bitToCharIdx.get(dataBitIdx);
+        }
+
+        mat[r][c] = { val: allBits[bitIdx], type, cwIdx, bitInCw: bitIdx%8, charIdx };
+        bitIdx++;
+      } else {
+        mat[r][c] = { val: 0, type: 'remainder' };
+      }
+    }
+  }
+
+  // Choose best mask
+  let bestPenalty = Infinity, bestMask = 2;
+  for (let m = 0; m < 8; m++) {
+    // Quick penalty on masked version
+    let p = 0;
+    for (let r = 0; r < sz; r++)
+      for (let c = 0; c < sz; c++) {
+        const cell = mat[r][c];
+        if (cell && (cell.type==='data'||cell.type==='ecc'||cell.type==='header')) {
+          const masked = (cell.val ^ (MASKS[m](r,c)?1:0));
+          // simplified: just count
+        }
+      }
+    // We'll just use mask 2 for simplicity (common choice)
+  }
+
+  // Apply mask (mask 2: col%3===0)
+  const maskFn = MASKS[bestMask];
+  for (let r = 0; r < sz; r++) {
+    for (let c = 0; c < sz; c++) {
+      const cell = mat[r][c];
+      if (cell && (cell.type==='data'||cell.type==='ecc'||cell.type==='header'||cell.type==='remainder')) {
+        if (maskFn(r,c)) cell.val ^= 1;
+        cell.masked = maskFn(r,c);
+      }
+    }
+  }
+
+  // Place correct format info for mask 2
+  placeFormatInfo(mat, sz, FORMAT_STRINGS_M[bestMask]);
+
+  return { mat, sz, mask: bestMask };
+}
+
+// =====================
+// COLOR PALETTE for chars
+// =====================
+const CHAR_COLORS = [
+  '#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7',
+  '#da77f2','#f783ac','#63e6be','#ff8787','#74c0fc',
+  '#a9e34b','#ffec99','#e599f7','#66d9e8','#ffa8a8',
+];
+
+function charColor(ci) { return CHAR_COLORS[ci % CHAR_COLORS.length]; }
+
+// =====================
+// DRAW QR
+// =====================
+const QUIET = 0;
+
+function getModuleSize(sz) {
+  const panel = document.querySelector('.qr-panel');
+  const padding = 32 * 2; // 2rem padding each side
+  const available = (panel ? panel.clientWidth : 380) - padding - 24; // 24 = qr-wrap padding
+  return Math.max(6, Math.min(14, Math.floor(available / sz)));
+}
+
+function drawQR(mat, sz, highlightChar) {
+  const MODULE_SIZE = getModuleSize(sz);
+  const qrCanvas = document.getElementById('qr-svg');
+  const overlayCanvas = document.getElementById('qr-overlay');
+  const total = sz * MODULE_SIZE;
+  qrCanvas.width = overlayCanvas.width = total;
+  qrCanvas.height = overlayCanvas.height = total;
+
+  const ctx = qrCanvas.getContext('2d');
+  const octx = overlayCanvas.getContext('2d');
+  octx.clearRect(0,0,total,total);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,total,total);
+
+  for (let r = 0; r < sz; r++) {
+    for (let c = 0; c < sz; c++) {
+      const cell = mat[r][c];
+      if (!cell) continue;
+      const x = c * MODULE_SIZE, y = r * MODULE_SIZE;
+
+      // Base module (black/white)
+      ctx.fillStyle = cell.val ? '#111' : '#fff';
+      ctx.fillRect(x, y, MODULE_SIZE, MODULE_SIZE);
+
+      // Colored tint on overlay for data cells
+      if (cell.type === 'ecc') {
+        octx.fillStyle = 'rgba(100,200,100,0.35)';
+        octx.fillRect(x,y,MODULE_SIZE,MODULE_SIZE);
+      } else if (cell.type === 'header') {
+        octx.fillStyle = 'rgba(150,100,255,0.4)';
+        octx.fillRect(x,y,MODULE_SIZE,MODULE_SIZE);
+      } else if (cell.type === 'data' && cell.charIdx >= 0) {
+        const col = charColor(cell.charIdx);
+        const highlighted = (highlightChar === null || highlightChar === cell.charIdx);
+        const alpha = highlighted ? 0.45 : 0.12;
+        octx.fillStyle = hexToRgba(col, alpha);
+        octx.fillRect(x,y,MODULE_SIZE,MODULE_SIZE);
+      }
+    }
+  }
+
+  // Draw outlines around each character region
+  drawCharOutlines(mat, sz, octx, highlightChar, MODULE_SIZE);
+}
+
+function drawCharOutlines(mat, sz, octx, highlightChar, MODULE_SIZE) {
+  // For each unique charIdx, find bounding box and draw outline
+  const charCells = new Map();
+  for (let r = 0; r < sz; r++) {
+    for (let c = 0; c < sz; c++) {
+      const cell = mat[r][c];
+      if (cell && cell.type === 'data' && cell.charIdx >= 0) {
+        if (!charCells.has(cell.charIdx)) charCells.set(cell.charIdx, []);
+        charCells.get(cell.charIdx).push([r,c]);
+      }
+    }
+  }
+
+  for (const [ci, cells] of charCells) {
+    const highlighted = (highlightChar === null || highlightChar === ci);
+    if (!highlighted) continue;
+    const col = charColor(ci);
+    // Draw individual cell outlines (edge detection)
+    octx.strokeStyle = col;
+    octx.lineWidth = highlighted ? 2 : 1;
+    octx.globalAlpha = highlighted ? 0.9 : 0.3;
+
+    const cellSet = new Set(cells.map(([r,c])=>`${r},${c}`));
+    for (const [r,c] of cells) {
+      const x = c*MODULE_SIZE, y = r*MODULE_SIZE;
+      // Draw border on sides where neighbor is not same char
+      // Top
+      if (!cellSet.has(`${r-1},${c}`)) { octx.beginPath(); octx.moveTo(x,y); octx.lineTo(x+MODULE_SIZE,y); octx.stroke(); }
+      // Bottom
+      if (!cellSet.has(`${r+1},${c}`)) { octx.beginPath(); octx.moveTo(x,y+MODULE_SIZE); octx.lineTo(x+MODULE_SIZE,y+MODULE_SIZE); octx.stroke(); }
+      // Left
+      if (!cellSet.has(`${r},${c-1}`)) { octx.beginPath(); octx.moveTo(x,y); octx.lineTo(x,y+MODULE_SIZE); octx.stroke(); }
+      // Right
+      if (!cellSet.has(`${r},${c+1}`)) { octx.beginPath(); octx.moveTo(x+MODULE_SIZE,y); octx.lineTo(x+MODULE_SIZE,y+MODULE_SIZE); octx.stroke(); }
+    }
+    octx.globalAlpha = 1.0;
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// =====================
+// MAIN UPDATE FUNCTION
+// =====================
+let currentMat = null, currentSz = 0;
+let highlightedChar = null;
+
+function updateAll(text) {
+  document.getElementById('char-count').textContent = text.length;
+  const encoder = new TextEncoder();
+  const bytes = Array.from(encoder.encode(text));
+
+  // Update hex + binary totals
+  let ones = 0, zeros = 0, hexStr = '';
+  for (const b of bytes) {
+    hexStr += b.toString(16).toUpperCase().padStart(2,'0') + ' ';
+    for (let i = 7; i >= 0; i--) { if ((b>>i)&1) ones++; else zeros++; }
+  }
+  document.getElementById('hex-output').textContent = hexStr.trim() || '—';
+  document.getElementById('total-bytes').textContent = bytes.length;
+  document.getElementById('total-bits').textContent = bytes.length*8;
+  document.getElementById('ones-zeros').textContent = `${ones} / ${zeros}`;
+
+  if (text.length === 0) {
+    resetUI();
+    return;
+  }
+
+  const version = getVersion(bytes.length);
+  if (!version) {
+    document.getElementById('qr-info').style.display = 'none';
+    document.getElementById('char-legend').style.display = 'none';
+    showQRError('Text je příliš dlouhý pro vizualizaci');
+    updateBinaryPanel(bytes, text, null);
+    return;
+  }
+
+  // Build data bitstream + ECC
+  const { bits, codewords, charBitRanges, headerBits } = buildDataBitstream(bytes, version);
+  const dataCW = QR_PARAMS[version-1].dataCW;
+  const eccCW = QR_PARAMS[version-1].eccCW;
+  const eccCodewords = rsEncode(codewords, eccCW);
+  const allCodewords = [...codewords, ...eccCodewords];
+
+  document.getElementById('total-ecc').textContent = eccCW;
+  document.getElementById('info-version').textContent = version;
+  const sz = SIZE[version];
+  document.getElementById('info-modules').textContent = `${sz}×${sz}`;
+  document.getElementById('info-datacw').textContent = dataCW;
+  document.getElementById('info-ecccw').textContent = eccCW;
+  document.getElementById('qr-info').style.display = 'grid';
+
+  // Build matrix
+  const { mat } = buildMatrix(version, allCodewords, charBitRanges, headerBits);
+  currentMat = mat;
+  currentSz = sz;
+
+  // Draw
+  drawQR(mat, sz, highlightedChar);
+  document.getElementById('qr-wrap').classList.add('pulse');
+  setTimeout(()=>document.getElementById('qr-wrap').classList.remove('pulse'), 400);
+
+  // Binary panel
+  updateBinaryPanel(bytes, text, charBitRanges);
+
+  // Legend
+  updateLegend(text);
+}
+
+function updateBinaryPanel(bytes, text, charBitRanges) {
+  const el = document.getElementById('binary-chars');
+  if (bytes.length === 0) {
+    el.innerHTML = `<div class="placeholder" style="height:200px">
+      <div class="placeholder-icon">▦</div><p>binární data se zobrazí zde…</p></div>`;
+    return;
+  }
+
+  let html = '';
+  for (let i = 0; i < bytes.length; i++) {
+    const b = bytes[i];
+    const ch = text[i] || '?';
+    const printable = (b>=32&&b<127) ? ch : '?';
+    const col = charColor(i);
+    let bitsHTML = '';
+    const bStr = b.toString(2).padStart(8,'0');
+    for (const bit of bStr) {
+      bitsHTML += `<div class="bit ${bit==='1'?'b1':'b0'}">${bit}</div>`;
+    }
+    html += `<div class="char-row visible" id="brow-${i}" data-char="${i}" style="border-color:${col}22"
+      onmouseenter="highlightChar(${i})" onmouseleave="highlightChar(null)">
+      <span class="char-symbol" style="background:${col}22;color:${col};border:1px solid ${col}55">${escapeHtml(printable)}</span>
+      <span class="char-ascii">ASC ${b}</span>
+      <div class="bits-wrap">${bitsHTML}</div>
+      <span class="char-decimal">${b.toString(2).padStart(8,'0')}</span>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function updateLegend(text) {
+  if (!text) { document.getElementById('char-legend').style.display='none'; return; }
+  let html = '';
+  for (let i = 0; i < text.length; i++) {
+    const col = charColor(i);
+    const ch = text[i];
+    html += `<div class="legend-item" id="leg-${i}" data-char="${i}"
+      style="color:${col}"
+      onmouseenter="highlightChar(${i})" onmouseleave="highlightChar(null)">
+      <div class="legend-dot" style="background:${col}44;border:1px solid ${col}"></div>
+      ${escapeHtml(ch)}
+    </div>`;
+  }
+  document.getElementById('legend-items').innerHTML = html;
+  document.getElementById('char-legend').style.display = 'block';
+}
+
+function highlightChar(idx) {
+  highlightedChar = idx;
+  if (currentMat) drawQR(currentMat, currentSz, idx);
+  // Highlight binary row
+  document.querySelectorAll('.char-row').forEach(r => {
+    const ci = parseInt(r.dataset.char);
+    if (idx === null) r.classList.remove('highlighted');
+    else r.classList.toggle('highlighted', ci === idx);
+  });
+  // Highlight legend
+  document.querySelectorAll('.legend-item').forEach(r => {
+    const ci = parseInt(r.dataset.char);
+    if (idx === null) r.classList.remove('active');
+    else r.classList.toggle('active', ci === idx);
+  });
+}
+
+function resetUI() {
+  currentMat = null;
+  const qrCanvas = document.getElementById('qr-svg');
+  const overlayCanvas = document.getElementById('qr-overlay');
+  qrCanvas.width = overlayCanvas.width = 210;
+  qrCanvas.height = overlayCanvas.height = 210;
+  const ctx = qrCanvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0,0,210,210);
+  ctx.fillStyle = '#ccc';
+  ctx.font = '14px Space Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('čekám na vstup…', 105, 105);
+  document.getElementById('qr-info').style.display = 'none';
+  document.getElementById('char-legend').style.display = 'none';
+  document.getElementById('binary-chars').innerHTML = `<div class="placeholder" style="height:200px">
+    <div class="placeholder-icon">▦</div><p>binární data se zobrazí zde…</p></div>`;
+  document.getElementById('total-bytes').textContent = '0';
+  document.getElementById('total-bits').textContent = '0';
+  document.getElementById('ones-zeros').textContent = '0 / 0';
+  document.getElementById('total-ecc').textContent = '—';
+  document.getElementById('hex-output').textContent = '—';
+}
+
+function showQRError(msg) {
+  const qrCanvas = document.getElementById('qr-svg');
+  qrCanvas.width = 210; qrCanvas.height = 210;
+  const ctx = qrCanvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,210,210);
+  ctx.fillStyle = '#e55'; ctx.font = '12px monospace';
+  ctx.textAlign = 'center'; ctx.fillText(msg,105,105);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Tooltip on QR hover
+const tooltip = document.getElementById('tooltip');
+const overlayCanvas = document.getElementById('qr-overlay');
+
+overlayCanvas.addEventListener('mousemove', e => {
+  if (!currentMat) return;
+  const rect = overlayCanvas.getBoundingClientRect();
+  const modSize = rect.width / currentSz;
+  const col = Math.floor((e.clientX - rect.left) / modSize);
+  const row = Math.floor((e.clientY - rect.top) / modSize);
+  if (row < 0 || row >= currentSz || col < 0 || col >= currentSz) { tooltip.style.display='none'; return; }
+  const cell = currentMat[row][col];
+  if (!cell) { tooltip.style.display='none'; return; }
+
+  let info = `Modul (${row}, ${col})\n`;
+  info += `Hodnota: ${cell.val}\n`;
+  const typeNames = {finder:'Finder pattern',timing:'Timing pattern',format:'Format info',dark:'Dark module',alignment:'Alignment pattern',data:'Data',ecc:'ECC (oprava chyb)',header:'Záhlaví (mode/délka)',remainder:'Remainder bit'};
+  info += `Typ: ${typeNames[cell.type]||cell.type}`;
+  if (cell.type==='data'&&cell.charIdx>=0) {
+    const ch = document.getElementById('text-input').value[cell.charIdx]||'';
+    info += `\nZnak: "${ch}" (index ${cell.charIdx})\nBit ${cell.bitInCw} v kódovém slovu ${cell.cwIdx}`;
+  } else if (cell.type==='ecc') {
+    info += `\nKódové slovo ECC #${cell.cwIdx}`;
+  } else if (cell.type==='header') {
+    info += `\n(Mode indicator / délka textu)`;
+  }
+  if (cell.masked!==undefined) info += `\nMaska: ${cell.masked?'překlopeno':'původní'}`;
+
+  tooltip.innerText = info;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top = (e.clientY - 10) + 'px';
+
+  // Also highlight character
+  if (cell.type==='data'&&cell.charIdx>=0) highlightChar(cell.charIdx);
+});
+
+overlayCanvas.addEventListener('mouseleave', () => {
+  tooltip.style.display='none';
+  highlightChar(null);
+});
+
+// Wire up input
+let debounce = null;
+document.getElementById('text-input').addEventListener('input', e => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => updateAll(e.target.value), 80);
+});
+
+// Init
+resetUI();
+</script>
+</body>
+</html>
