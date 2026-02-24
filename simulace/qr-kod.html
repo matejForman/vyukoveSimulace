@@ -8,12 +8,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;600;800&display=swap');
 
 :root {
-  --bg: #0a0e1a;
-  --surface: #111827;
-  --border: #1e2d40;
-  --accent: #00e5ff;
-  --text: #e2e8f0;
-  --muted: #4a5568;
+  --bg: #f0f4ff;
+  --surface: #ffffff;
+  --border: #c5d0e8;
+  --accent: #0068cc;
+  --text: #000000;
+  --muted: #5a6a8a;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,8 +32,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+    linear-gradient(rgba(0,104,204,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,104,204,0.06) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -56,7 +56,7 @@ header p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
 
 .badge {
   margin-left: auto;
-  background: rgba(0,229,255,0.1);
+  background: rgba(0,104,204,0.08);
   border: 1px solid var(--accent);
   color: var(--accent);
   font-family: 'Space Mono', monospace;
@@ -93,7 +93,7 @@ header p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
 
 #text-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(0,229,255,0.15);
+  box-shadow: 0 0 0 2px rgba(0,104,204,0.15);
 }
 
 .char-count {
@@ -135,11 +135,11 @@ main {
   background: #fff;
   padding: 12px;
   border-radius: 4px;
-  box-shadow: 0 0 40px rgba(0,229,255,0.15);
+  box-shadow: 0 2px 16px rgba(0,104,204,0.12), 0 0 0 1px var(--border);
   transition: box-shadow 0.3s;
 }
 
-#qr-wrap.pulse { box-shadow: 0 0 60px rgba(0,229,255,0.45); }
+#qr-wrap.pulse { box-shadow: 0 4px 32px rgba(0,104,204,0.3), 0 0 0 1px var(--accent); }
 
 /* The SVG QR canvas */
 #qr-svg { display: block; }
@@ -224,8 +224,8 @@ main {
   transition: border-color 0.15s, background 0.15s;
 }
 
-.legend-item:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); }
-.legend-item.active { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+.legend-item:hover { border-color: rgba(0,0,0,0.15); background: rgba(0,0,0,0.04); }
+.legend-item.active { border-color: rgba(0,0,0,0.25); background: rgba(0,0,0,0.06); }
 
 .legend-dot {
   width: 11px; height: 11px;
@@ -280,8 +280,8 @@ main {
 }
 
 .char-row.visible { opacity: 1; transform: translateX(0); }
-.char-row:hover { background: rgba(255,255,255,0.03); }
-.char-row.highlighted { border-color: rgba(255,255,255,0.3) !important; }
+.char-row:hover { background: rgba(0,0,0,0.03); }
+.char-row.highlighted { border-color: rgba(0,0,0,0.25) !important; background: rgba(0,104,204,0.05); }
 
 .char-symbol {
   font-family: 'Space Mono', monospace;
@@ -309,8 +309,8 @@ main {
   transition: background 0.15s;
 }
 
-.bit.b0 { background: #1a2744; color: var(--muted); border: 1px solid #1e2d40; }
-.bit.b1 { background: var(--accent); color: #0a0e1a; }
+.bit.b0 { background: #dce4f0; color: #8a9ab8; border: 1px solid #c5d0e8; }
+.bit.b1 { background: var(--accent); color: #ffffff; }
 
 .char-decimal {
   font-family: 'Space Mono', monospace;
@@ -351,7 +351,7 @@ main {
 
 #hex-output {
   font-family: 'Space Mono', monospace;
-  font-size: 0.8rem; color: #a78bfa;
+  font-size: 0.8rem; color: #7c3aed;
   letter-spacing: 0.1em; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
@@ -379,7 +379,7 @@ main {
 /* Tooltip */
 #tooltip {
   position: fixed;
-  background: #1e2d40;
+  background: #ffffff;
   border: 1px solid var(--accent);
   color: var(--text);
   font-family: 'Space Mono', monospace;
@@ -391,6 +391,7 @@ main {
   z-index: 100;
   line-height: 1.6;
   max-width: 220px;
+  box-shadow: 0 4px 16px rgba(0,104,204,0.15);
 }
 
 @media (max-width: 900px) {
@@ -427,12 +428,12 @@ main {
     <div class="qr-legend">
       <div class="legend-title">Struktura QR kódu:</div>
       <div class="struct-legend">
-        <div class="struct-item"><div class="struct-dot" style="background:#2d2d2d;border:1px solid #555"></div>Finder pattern</div>
-        <div class="struct-item"><div class="struct-dot" style="background:#1a3a1a;border:1px solid #2d6a2d"></div>Timing pattern</div>
-        <div class="struct-item"><div class="struct-dot" style="background:#3a1a1a;border:1px solid #7a2a2a"></div>Format info</div>
-        <div class="struct-item"><div class="struct-dot" style="background:#2a2a3a;border:1px solid #5a5a8a"></div>Dark module</div>
-        <div class="struct-item"><div class="struct-dot" style="background:rgba(100,200,100,0.3);border:1px solid #64c864"></div>ECC kódová slova</div>
-        <div class="struct-item"><div class="struct-dot" style="background:rgba(150,100,255,0.3);border:1px solid #9664ff"></div>Datová záhlaví</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#d0d0d0;border:1px solid #999"></div>Finder pattern</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#c8e6c9;border:1px solid #66bb6a"></div>Timing pattern</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#ffcdd2;border:1px solid #e57373"></div>Format info</div>
+        <div class="struct-item"><div class="struct-dot" style="background:#b0bec5;border:1px solid #607d8b"></div>Dark module</div>
+        <div class="struct-item"><div class="struct-dot" style="background:rgba(100,200,100,0.4);border:1px solid #43a047"></div>ECC kódová slova</div>
+        <div class="struct-item"><div class="struct-dot" style="background:rgba(150,100,255,0.3);border:1px solid #7e57c2"></div>Datová záhlaví</div>
       </div>
     </div>
 
@@ -1128,7 +1129,7 @@ function resetUI() {
   const ctx = qrCanvas.getContext('2d');
   ctx.fillStyle = '#fff';
   ctx.fillRect(0,0,210,210);
-  ctx.fillStyle = '#ccc';
+  ctx.fillStyle = '#aab';
   ctx.font = '14px Space Mono, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('čekám na vstup…', 105, 105);
