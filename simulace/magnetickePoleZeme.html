@@ -9,28 +9,35 @@
    Scéna je kreslená vlastní perspektivní projekcí do canvasu, aby zůstala ručně kreslená. */
 :root{
   --bg:#f5f6f8; --fg:#161a22; --muted:#596273; --line:#dde1e8; --card:#ffffff;
-  --accent:#3552d6; --accent-ink:#ffffff;
+  --accent:#a5accb; --accent-ink:#3e5376;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
+/* @media (prefers-color-scheme: dark){
+  :root:not([data-theme="dark"]){
     --bg:#12151b; --fg:#e9ecf2; --muted:#9aa4b5; --line:#2a303b; --card:#1a1f27;
     --accent:#8fa3ff; --accent-ink:#10142a; color-scheme:dark;
   }
+} */
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="light"]){
+    --bg:#e7eaf0; --fg:#1e232d; --muted:#9aa4b5; --line:#2a303b; --card:#1a1f27;
+    --accent:#8fa3ff; --accent-ink:#86888f; color-scheme:light;
+  }
 }
-:root[data-theme="dark"]{
+:root[data-theme="light"]{
   --bg:#12151b; --fg:#e9ecf2; --muted:#9aa4b5; --line:#2a303b; --card:#1a1f27;
-  --accent:#8fa3ff; --accent-ink:#10142a; color-scheme:dark;
+  --accent:#8fa3ff; --accent-ink:#a4abd0; color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{
   background:var(--bg); color:var(--fg);
   font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   padding-block:0 64px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));
-  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-left:max(50px,env(safe-area-inset-left,0px));
+  padding-right:max(50px,env(safe-area-inset-right,0px));
+  max-width:1090px;margin:0 auto
 }
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-.wrap{max-width:1080px;margin:0 auto}
+.wrap{max-width:800px;margin:0 auto}
 .intro{padding-block:30px 18px}
 .intro h1{margin:0 0 8px;font-size:clamp(28px,4.4vw,40px);line-height:1.08;letter-spacing:-.015em;text-wrap:balance}
 .intro p{margin:0;color:var(--muted);max-width:64ch}
@@ -144,10 +151,10 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
 .tgb button:hover{border-color:var(--ink)}
 </style>
 
-<div class="wrap">
+<div class=" slide slide2">
   <header class="intro">
-    <h1>Magnetické pole Země</h1>
-    <p>Magnetické pole Země vzniká díky složitému a dynamickému procesu. Ačkoli většinu jevů dokážeme popsat, 
+    <h1 class="s-title">Magnetické pole Země</h1>
+    <p class="s-caption">Magnetické pole Země vzniká díky složitému a dynamickému procesu. Ačkoli většinu jevů dokážeme popsat, 
       stále jsou slepá místa, kde nevíme co a jak a tudíž nedokážeme předpovědět, jak se bude toto, 
       pro nás životně důležité pole, dále vyvíjet. Siločáry jsou vykresleny pro zjednodušený model
       nakloněného dipólu, tedy pole tyčového magnetu, který znáte ze školy s jednou polovinou
@@ -161,7 +168,7 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
       Novější období pokrývá IGRF, které vychází z přímých měření observatoří a družic.
       Existují i další databáze a modely, například
       <a href="https://www.ncei.noaa.gov/products/geomagnetic-data" target="_blank" rel="noopener">data NOAA/NCEI</a>.</p>
-      <p>
+      <p class="s-caption">
       Vyberte si místo, otočte glóbusem tažením myši a pusťte čas. Historický zýznam ukazuje 2 polohy. 
       Jedna je změna polohy magnetického severního pólu dle dipólového modelu (žlutý bod), druhý, červený bod, ukazuje 
       skutečnou polohu (vysvětlení rozdílu níže). </p>
