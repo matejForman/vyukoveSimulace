@@ -152,7 +152,7 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
 </style>
 
 <div class=" slide slide2">
-  <header class="intro">
+  <!-- <header class="intro"> -->
     <h1 class="s-title">Magnetické pole Země</h1>
     <p class="s-caption">Magnetické pole Země vzniká díky složitému a dynamickému procesu. Ačkoli většinu jevů dokážeme popsat, 
       stále jsou slepá místa, kde nevíme co a jak a tudíž nedokážeme předpovědět, jak se bude toto, 
@@ -172,7 +172,7 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
       Vyberte si místo, otočte glóbusem tažením myši a pusťte čas. Historický zýznam ukazuje 2 polohy. 
       Jedna je změna polohy magnetického severního pólu dle dipólového modelu (žlutý bod), druhý, červený bod, ukazuje 
       skutečnou polohu (vysvětlení rozdílu níže). </p>
-  </header>
+  <!-- </header> -->
 
   <div class="bar" role="group" aria-label="Ovládání animace">
     <div class="seg" role="group" aria-label="Zobrazení">
@@ -220,10 +220,12 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
         <div class="chart"><h4>Jak daleko jsou póly od osy rotace</h4><div class="cwrap"><canvas id="dc" role="img" aria-label="Graf vzdálenosti geomagnetického pólu od zeměpisného pólu v čase"></canvas></div><p class="info" id="dInfo"></p></div>
         <div class="chart"><h4>Kam v Brně ukazoval kompas (měření)</h4><div class="tgb" id="tg"><button type="button" data-t="ostrava" aria-pressed="true">k Ostravě</button><button type="button" data-t="stockholm" aria-pressed="false">ke Stockholmu</button></div><div class="cwrap"><canvas id="bc" role="img" aria-label="Graf magnetického azimutu k cíli v čase"></canvas></div><p class="info" id="bInfo"></p></div>
       </div>
-      <div class="fm-note refs"><p><b>Co který údaj znamená.</b> Glóbus je model: Země jako jediný šikmý magnet (dipól). Levý graf porovnává konec osy modelu se skutečným magnetickým pólem. Pravý graf ukazuje skutečná měření v Brně (celé pole IGRF), proto se odchylka kompasu v něm (dnes +5,5° východně) liší od modelu na glóbu (asi 14° západně). Model vysvětlí hlavní rysy pole, ne všechny podrobnosti.</p>
-        <p><b>Dva póly.</b> Žlutý bod je konec osy modelu (geomagnetický pól). Skutečný severní magnetický pól (červený kosočtverec) je místo, kde je pole svislé. Leží jinde, protože skutečné pole není jeden magnet. Dnes putuje k Sibiři a jeho stopa je červená.</p>
-        <p><b>Odkud jsou data.</b> Osa modelu je spočtená z koeficientů g₁₀, g₁₁ a h₁₁ modelů gufm1 (1590–1900) a IGRF-14 (od 1900), hodnota pro rok 2026,8 je extrapolace. Skutečný magnetický pól jsem našel výpočtem z celého pole (kde je vodorovná složka nulová) podle gufm1 (1590–1890), IGRF-13 (od 1900, do 2025) a pro roky 2025–2027 podle WMM2025. Obrysy kontinentů pocházejí z Natural Earth.</p>
-        <p><b>Data a přesnější modely.</b>
+      <!-- <div class="fm-note refs"> -->
+      <div class="s-top">
+        <p class="s-caption"><b>Co který údaj znamená.</b> Glóbus je model: Země jako jediný šikmý magnet (dipól). Levý graf porovnává konec osy modelu se skutečným magnetickým pólem. Pravý graf ukazuje skutečná měření v Brně (celé pole IGRF), proto se odchylka kompasu v něm (dnes +5,5° východně) liší od modelu na glóbu (asi 14° západně). Model vysvětlí hlavní rysy pole, ne všechny podrobnosti.</p>
+        <p class="s-caption"><b>Dva póly.</b> Žlutý bod je konec osy modelu (geomagnetický pól). Skutečný severní magnetický pól (červený kosočtverec) je místo, kde je pole svislé. Leží jinde, protože skutečné pole není jeden magnet. Dnes putuje k Sibiři a jeho stopa je červená.</p>
+        <p class="s-caption"><b>Odkud jsou data.</b> Osa modelu je spočtená z koeficientů g₁₀, g₁₁ a h₁₁ modelů gufm1 (1590–1900) a IGRF-14 (od 1900), hodnota pro rok 2026 je extrapolace. Skutečný magnetický pól jsem našel výpočtem z celého pole (kde je vodorovná složka nulová) podle gufm1 (1590–1890), IGRF-13 (od 1900, do 2025) a pro roky 2025–2027 podle WMM2025. Obrysy kontinentů pocházejí z Natural Earth.</p>
+        <p class="s-caption"><b>Data a přesnější modely.</b>
           <a href="https://www.ncei.noaa.gov/products/wandering-geomagnetic-poles" target="_blank" rel="noopener">polohy pólů (NOAA/NCEI)</a> ·
           <a href="https://www.ncei.noaa.gov/maps/historical-declination/" target="_blank" rel="noopener">historická mapa deklinace (NOAA)</a> ·
           <a href="https://www.ngdc.noaa.gov/IAGA/vmod/igrf.html" target="_blank" rel="noopener">IGRF</a> ·
@@ -231,7 +233,7 @@ select{font:inherit;color:var(--fg);background:var(--card);border:1px solid var(
           <a href="https://geomag.colorado.edu/node/669" target="_blank" rel="noopener">data gufm1</a> ·
           <a href="https://doi.org/10.1098/rsta.2000.0569" target="_blank" rel="noopener">článek o gufm1</a> ·
           <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a></p>
-        <p><b>Dál.</b>
+        <p class="s-caption"><b>Dál.</b>
           <a href="https://storymaps.arcgis.com/stories/f04ccf6a6e564c208b8222c7863ce9b0" target="_blank" rel="noopener">Earth's Magnetic Field: The Force That's Always with You</a> (příběh s mapami, anglicky) ·
           <a href="https://matejforman.github.io/vyukoveSimulace/simulace/magnetickePoleZeme.html" target="_blank" rel="noopener">původní interaktivní simulace</a></p></div>
     </div>
@@ -921,7 +923,7 @@ function drawDist(){
   if(dd!==null){const px=X(S.Y),py=Yv(dd);x.fillStyle=RED;x.beginPath();x.moveTo(px,py-9);x.lineTo(px+8,py);x.lineTo(px,py+9);x.lineTo(px-8,py);x.closePath();x.fill();x.stroke();}
   x.font='18px '+FONT;x.textAlign='left';x.textBaseline='top';x.fillStyle=INK;x.fillText('konec osy modelu',X(1720),Yv(7.6));
   x.textBaseline='bottom';x.fillStyle=RED;x.fillText('skutečný magnetický pól',L+8,Yv(22.8)-0);
-  M.dInfo.innerHTML='Rok <b>'+yrTxt(S.Y)+'</b>: konec osy modelu (žlutý bod) je od osy rotace vzdálený <b>'+fmt(dnow,1)+'°</b>, asi <b>'+(Math.round(dnow*KM/10)*10).toLocaleString('cs-CZ')+' km</b> po povrchu'+(S.manual?' (ručně nastavený sklon)':'')+'.'+(dd!==null?' Skutečný magnetický pól (červený kosočtverec) je vzdálený <b>'+fmt(dd,1)+'°</b>, asi <b>'+(Math.round(dd*KM/10)*10).toLocaleString('cs-CZ')+' km</b>.':'');
+  M.dInfo.innerHTML='Rok <b>2026</b>: konec osy modelu (žlutý bod) je od osy rotace vzdálený <b>'+fmt(dnow,1)+'°</b>, asi <b>'+(Math.round(dnow*KM/10)*10).toLocaleString('cs-CZ')+' km</b> po povrchu'+(S.manual?' (ručně nastavený sklon)':'')+'.'+(dd!==null?' Skutečný magnetický pól (červený kosočtverec) je vzdálený <b>'+fmt(dd,1)+'°</b>, asi <b>'+(Math.round(dd*KM/10)*10).toLocaleString('cs-CZ')+' km</b>.':'');
 }
 function drawAz(){
   const c=M.bc;if(!c||!c.width)return;const k=c.width/520,x=chartFrame(c,k);
@@ -939,7 +941,7 @@ function drawAz(){
   const cur=sample(S.Y),cm=geo-cur.D;x.lineTo(X(S.Y),Yv(cm));x.stroke();
   x.fillStyle=BLUE;x.strokeStyle=PAPER;x.lineWidth=2.4;x.beginPath();x.arc(X(S.Y),Yv(cm),7,0,2*PI);x.fill();x.stroke();
   x.fillStyle=SOFT;x.textAlign='left';x.textBaseline='bottom';x.font='18px '+FONT;x.fillText('zeměpisný azimut '+fmt(geo,1)+'°',L+8,Yv(geo)-5);
-  M.bInfo.innerHTML='Brno → '+tg[2]+', rok <b>'+yrTxt(S.Y)+'</b>: zeměpisný azimut '+fmt(geo,1)+'°, deklinace v Brně '+(cur.D>=0?'+':'−')+fmt(Math.abs(cur.D),1)+'°, kompas ukazuje azimut <b>'+fmt(cm,1)+'°</b> (modrá křivka).';
+  M.bInfo.innerHTML='Brno → '+tg[2]+', rok <b>2026</b>: zeměpisný azimut '+fmt(geo,1)+'°, deklinace v Brně '+(cur.D>=0?'+':'−')+fmt(Math.abs(cur.D),1)+'°, kompas ukazuje azimut <b>'+fmt(cm,1)+'°</b> (modrá křivka).';
 }
 function drawCharts(){drawDist();drawAz();}
 
