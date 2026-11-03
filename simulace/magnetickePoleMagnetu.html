@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pole tyčového magnetu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=STIX+Two+Text:ital@1&display=swap">
+<style>
+/* layout: lepkavý pruh s ovládáním, pod ním slid Náčrtek (název + parametry, scéna 1040×660, popisek + legenda, vzorec) */
+:root{
+  --pg:#f3f2ee;--pg-fg:#1d1d1f;--pg-mut:#5f6670;--pg-line:#d3d0c7;--pg-acc:#2c5fd6;
+  --ink:#1d1d1f;--paper:#fbfbfa;--blue:#2c5fd6;--red:#e5483b;--grey:#7d8493;
+  --nN:#ffc3b8;--nS:#b9d0ff;--body:#eef2fb;--hl:#ffe36e;
+  --hand:"Patrick Hand","Comic Sans MS","Comic Neue",cursive;
+  --serif:"STIX Two Text",Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#15191b;--pg-fg:#e8ecea;--pg-mut:#9aa5a0;--pg-line:#3a4544;--pg-acc:#8db0f5;color-scheme:dark}}
+:root[data-theme="dark"]{--pg:#15191b;--pg-fg:#e8ecea;--pg-mut:#9aa5a0;--pg-line:#3a4544;--pg-acc:#8db0f5;color-scheme:dark}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--pg);color:var(--pg-fg);font-family:var(--sans);font-size:15px;line-height:1.5;
+  padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;background:var(--pg);padding:6px 0;z-index:5}
+@media (min-width:760px){.bar{position:sticky;top:env(safe-area-inset-top,0px)}}
+button{font:inherit;font-size:14px;color:var(--pg-fg);background:transparent;border:1px solid var(--pg-line);border-radius:8px;padding:6px 11px;cursor:pointer}
+button:hover{background:color-mix(in srgb,var(--pg-fg) 7%,transparent)}
+button[aria-pressed="true"]{border-color:var(--pg-acc);color:var(--pg-acc);background:color-mix(in srgb,var(--pg-acc) 13%,transparent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--pg-acc);outline-offset:2px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+.sl{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--pg-mut)}
+.sl input{width:150px;accent-color:var(--pg-acc)}
+.sl output{min-width:64px;color:var(--pg-fg);font-variant-numeric:tabular-nums}
+.slide{container-type:inline-size;background:var(--paper);color:var(--ink);border:2.5px solid var(--ink);border-radius:14px 9px 16px 8px;box-shadow:5px 6px 0 rgba(29,29,31,.14);font-family:var(--hand)}
+.in{padding:2cqw 2.4cqw 2.2cqw;display:flex;flex-direction:column;gap:1.3cqw}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:6px 16px;flex-wrap:wrap}
+.top h1{margin:0;font-weight:400;font-size:clamp(20px,3.3cqw,36px);line-height:1.15}
+.params{font-size:clamp(14px,2cqw,22px);color:#5a6070}
+.scene{position:relative;aspect-ratio:1040/660;width:100%}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab;display:block}
+.note{position:absolute;font-size:clamp(12px,1.75cqw,20px);line-height:1.15;color:#3a3f4c;pointer-events:none;text-shadow:0 0 3px var(--paper),0 0 3px var(--paper),0 0 5px var(--paper)}
+@container (max-width:560px){.note{display:none}}
+.bottom{display:grid;grid-template-columns:1.15fr 1fr;gap:1.8cqw;align-items:start}
+@container (max-width:680px){.bottom{grid-template-columns:1fr}}
+.cap{font-size:clamp(14px,1.95cqw,21px);line-height:1.3}
+.cap p{margin:0 0 .5em}
+.legend{display:flex;flex-wrap:wrap;gap:.2em 1.1em;font-size:clamp(12px,1.6cqw,18px);color:#4a5060}
+.legend span{display:inline-flex;align-items:center;gap:.4em}
+.sw{display:inline-block;width:1.5em;height:.5em;border:1.5px solid var(--ink);border-radius:3px}
+.sw.dot{width:.9em;height:.9em;border-radius:50%}
+.fbox{border:2.5px solid var(--ink);border-radius:255px 14px 225px 14px/14px 225px 14px 255px;background:#fff;padding:1.3cqw 2.2cqw;font-size:clamp(13px,1.85cqw,20px);line-height:1.35}
+.fbox i{font-family:var(--serif);font-style:italic}
+.fbox .b{color:var(--blue)}.fbox .q{color:var(--red)}
+.fbox sub{font-size:.7em}
+.fbox .f1,.fbox .f2{margin-bottom:.4em}
+.fbox .f3,.fbox .f4{font-size:.85em;color:#4a5060}
+.fbox mark{background:var(--hl);padding:0 .25em;border-radius:3px;color:var(--ink)}
+.fbox .g{color:#5f6676}.fbox small{font-size:.82em}
+.sym{flex-basis:100%;margin-top:.35em;font-size:clamp(12px,1.6cqw,18px);line-height:1.35;color:#3a3f4c}
+.sym div{margin:.05em 0}.sym i{font-family:var(--serif);font-style:italic}.sym .b{color:var(--blue)}.sym .q{color:var(--red)}.sym .g{color:#5f6676}
+.model{border:2px dashed #7d8493;border-radius:12px 8px 14px 8px;background:#fff;padding:1cqw 1.8cqw;font-size:clamp(12.5px,1.65cqw,19px);line-height:1.35;color:#3a3f4c}
+.model p{margin:0 0 .45em}.model p:last-child{margin:0}.model i{font-family:var(--serif);font-style:italic}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.1;margin:0 .1em}
+.fr>span:first-child{border-bottom:1.5px solid var(--ink);padding:0 .2em}
+.fr>span:last-child{padding:0 .2em}
+</style>
+</head><body>
+<main>
+<div class="bar" role="toolbar" aria-label="Ovládání">
+  <div class="seg" id="modes" role="group" aria-label="Krok">
+    <button data-m="kompas" aria-pressed="false">1 Kompas</button>
+    <button data-m="cary" aria-pressed="false">2 Čáry ze sond</button>
+    <button data-m="porov" aria-pressed="false">3 Porovnání</button>
+    <button data-m="sila" aria-pressed="false">4 Dva magnety</button>
+  </div>
+  <label class="sl" data-modes="kompas cary porov sila">Síla pólů <input type="range" id="sQ" min="10" max="150" step="5" value="100"><output id="oQ">100 A·m</output></label>
+  <button id="bPaper" aria-pressed="false" data-modes="kompas cary porov">Papír s pilinami</button>
+  <button id="bSlide" aria-pressed="false" data-modes="kompas cary porov">Po siločáře</button>
+  <button id="bStamp" data-modes="kompas cary porov">Zanechat sondu</button>
+  <button id="bGrid" data-modes="kompas cary porov">Mřížka sond</button>
+  <button id="bClear" data-modes="kompas cary porov">Smazat sondy</button>
+  <button id="bRot" data-modes="kompas cary porov">Otočit magnet</button>
+  <button id="bPol" aria-pressed="false" data-modes="kompas cary porov">Přepólovat</button>
+  <button id="bOsc" aria-pressed="true" data-modes="kompas cary porov">Kmitání jehly</button>
+  <label class="sl" data-modes="sila">Natočení B <input type="range" id="sAng" min="0" max="355" step="5" value="0"><output id="oAng">0°</output></label>
+  <button id="bPolB" aria-pressed="false" data-modes="sila">Přepólovat B</button>
+  <button id="bPolA" aria-pressed="false" data-modes="sila">Přepólovat A</button>
+</div>
+<div class="slide"><div class="in">
+  <div class="top"><h1>Magnetické pole tyčového magnetu</h1><div class="params" id="params"></div></div>
+  <div class="scene" id="scene">
+    <canvas id="cv" role="img" aria-label="Tyčový magnet, kompas, siločáry a síla mezi dvěma magnety"></canvas>
+    <div class="note" id="n1"></div><div class="note" id="n2"></div>
+  </div>
+  <div class="bottom">
+    <div class="cap"><p id="cap"></p><div class="legend" id="leg"></div></div>
+    <div class="fbox" id="fbox"></div>
+  </div>
+  <div class="model" id="model"><p><b>Z čeho model vychází.</b> Magnet je brán jako <b>rovnoměrně zmagnetovaný</b>: magnetizace <i>M</i> je v celém objemu stejná, a proto se chová jako dvě rovnoměrně „nabité“ čelní stěny s <i>q</i> = <i>M</i>·<i>S</i> (<i>S</i> je plocha čela, tady 2 × 2 cm). U skutečných tyčových magnetů to platí jen zhruba: uvnitř působí vlastní odmagnetovací pole a magnetizace bývá nerovnoměrná, slabší u konců, hran a rohů.</p><p><b>Co se předpokládá.</b> Počítáme s <b>idealizovanými feritovými magnety</b>: tvrdý materiál se stálou magnetizací (<i>M</i> zhruba 300 kA/m, tedy <i>q</i> řádově 100 A·m), bez vlivu teploty, okolního železa a jiných magnetů než těch ve scéně. Magnety leží v jedné rovině.</p><p><b>Jak přesné to je.</b> Největší odchylky jsou těsně u magnetu (jednotky cm od povrchu), kde se B i síla mohou od skutečnosti lišit i o desítky procent. <b>S rostoucí vzdáleností chyba uvedených hodnot klesá</b>, protože pole z dálky závisí hlavně na celkovém magnetickém momentu (<i>q</i>·délka magnetu), ne na jemných detailech rozložení magnetizace. Hodnoty berte jako dobrý řádový odhad, ne jako měření.</p></div>
+</div></div>
+</main>
+<script>
+(function(){
+'use strict';
+var CW=1040,CH=660,MPX=1/2000,K0=1e-7,HL=100,HW=20,PA=80,PX0=30,PY0=16,PW=980,PH=550,NL=12,BOT=440;
+var C={ink:'#1d1d1f',paper:'#fbfbfa',blue:'#2c5fd6',red:'#e5483b',grey:'#7d8493',nN:'#ffc3b8',nS:'#b9d0ff',body:'#eef2fb',hl:'#ffe36e'};
+var HAND='"Patrick Hand","Comic Sans MS","Comic Neue",cursive',SERIF='"STIX Two Text",Georgia,serif';
+function $(id){return document.getElementById(id)}
+var cv=$('cv'),ctx=cv.getContext('2d'),dpr=Math.min(window.devicePixelRatio||1,2),sc=1;
+var reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+var S={mode:'kompas',q:100,mag:{x:520,y:300,a:0},sign:1,probe:{x:800,y:130,th:0,w:0},A:{x:330,y:240,a:0,s:1},B:{x:700,y:240,a:0,s:1},stamps:[],paper:false,slide:false,osc:!reduce,dirty:true};
+var G=null;
+var KEY={kompas:'kompas',cary:'cary',porov:'porovnani',sila:'sila'};
+function fm(x,d){return x.toFixed(d).replace('.',',')}
+function fB(b){return b>=1e-3?fm(b*1e3,b>=1e-2?1:2)+' mT':fm(b*1e6,b>=1e-4?0:1)+' µT'}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function adiff(a,b){var d=a-b;return Math.atan2(Math.sin(d),Math.cos(d))}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function updG(){var a=S.mag.a,m={x:Math.cos(a),y:Math.sin(a)},n={x:-m.y,y:m.x},c=S.mag,g=S.sign*PA;
+  G={c:c,m:m,n:n,pN:{x:c.x+g*m.x,y:c.y+g*m.y},pS:{x:c.x-g*m.x,y:c.y-g*m.y}}}
+function inRect(x,y,pad){var dx=x-G.c.x,dy=y-G.c.y,u=dx*G.m.x+dy*G.m.y,v=dx*G.n.x+dy*G.n.y;return Math.abs(u)<HL+pad&&Math.abs(v)<HW+pad}
+var FR=20,GS=2,GN=601,GU=new Float32Array(GN*GN),GV=new Float32Array(GN*GN),FPT=[],FNP=144;
+(function(){var i,iu,iv,j,u,v,bu,bv,p,dx,dy,dz,r2,f,w=0.4/FNP;
+  for(i=0;i<FNP;i++){FPT.push([((i%12+0.5)/12*2-1)*HW,((Math.floor(i/12)+0.5)/12*2-1)*HW])}
+  for(iv=0;iv<GN;iv++){v=iv*GS;for(iu=0;iu<GN;iu++){u=iu*GS;bu=0;bv=0;
+    for(j=0;j<FNP;j++){p=FPT[j];dy=v-p[0];dz=p[1];
+      dx=u-HL;r2=dx*dx+dy*dy+dz*dz+1;f=1/(r2*Math.sqrt(r2));bu+=f*dx;bv+=f*dy;
+      dx=u+HL;r2=dx*dx+dy*dy+dz*dz+1;f=1/(r2*Math.sqrt(r2));bu-=f*dx;bv-=f*dy}
+    GU[iv*GN+iu]=bu*w;GV[iv*GN+iu]=bv*w}}})();
+function bil(A,k,tx,ty){return (1-ty)*((1-tx)*A[k]+tx*A[k+1])+ty*((1-tx)*A[k+GN]+tx*A[k+GN+1])}
+function Bloc(u,v){var au=Math.abs(u),av=Math.abs(v),su=u<0?-1:1,sv=v<0?-1:1;
+  if(au>=1196||av>=1196){var d1=u-HL,d2=u+HL,r1=d1*d1+v*v+1,r2=d2*d2+v*v+1,f1=0.4/(r1*Math.sqrt(r1)),f2=0.4/(r2*Math.sqrt(r2));return [f1*d1-f2*d2,f1*v-f2*v]}
+  var fx=au/GS,fy=av/GS,ix=fx|0,iy=fy|0,k=iy*GN+ix,tx=fx-ix,ty=fy-iy;
+  return [bil(GU,k,tx,ty),su*sv*bil(GV,k,tx,ty)]}
+function Bv(x,y){var dx=x-G.c.x,dy=y-G.c.y,u=dx*G.m.x+dy*G.m.y,v=dx*G.n.x+dy*G.n.y,b=Bloc(u,v),s=S.q*S.sign,
+  bx=s*(b[0]*G.m.x+b[1]*G.n.x),by=s*(b[0]*G.m.y+b[1]*G.n.y);return [bx,by,Math.hypot(bx,by)||1e-12]}
+function faceB(x,y,sg){var dx=x-G.c.x,dy=y-G.c.y,u=dx*G.m.x+dy*G.m.y,v=dx*G.n.x+dy*G.n.y,bu=0,bv=0,j,p,a,b,c,r2,f,s=S.q*S.sign*sg*0.4/FNP;
+  for(j=0;j<FNP;j++){p=FPT[j];a=u-sg*HL;b=v-p[0];c=-p[1];r2=a*a+b*b+c*c+1;f=1/(r2*Math.sqrt(r2));bu+=f*a;bv+=f*b}
+  bu*=s;bv*=s;return Math.hypot(bu,bv)}
+function str(b){return clamp((Math.log(b)/Math.LN10+5.5)/4.2,0,1)}
+var SEEDS={};
+function seedsFor(n){if(SEEDS[n])return SEEDS[n];var F=[],V=[],cum=0,v,prev=0,out=[],k,t,i;
+  for(v=HW;v<=1190;v+=1){cum+=Math.abs(Bloc(0,v)[0])*v;F.push(cum);V.push(v)}
+  var tot=cum+Math.abs(Bloc(0,1190)[0])*1190*1190;
+  i=0;for(k=1;k<n;k++){t=k/n*tot;while(i<F.length-1&&F[i]<t)i++;out.push(V[i])}
+  return SEEDS[n]=out}
+function dirAt(x,y,s){var b=Bv(x,y);return [s*b[0]/b[2],s*b[1]/b[2]]}
+function trace(x,y,s,max){var P=[[x,y]],h=3,i,k1,k2,k3,k4;
+  for(i=0;i<max;i++){k1=dirAt(x,y,s);k2=dirAt(x+k1[0]*h/2,y+k1[1]*h/2,s);k3=dirAt(x+k2[0]*h/2,y+k2[1]*h/2,s);k4=dirAt(x+k3[0]*h,y+k3[1]*h,s);
+    x+=h*(k1[0]+2*k2[0]+2*k3[0]+k4[0])/6;y+=h*(k1[1]+2*k2[1]+2*k3[1]+k4[1])/6;P.push([x,y]);
+    if(x<-30||x>CW+30||y<-30||y>CH+30||inRect(x,y,0))break}
+  if(P.length>1&&inRect(P[P.length-1][0],P[P.length-1][1],0))P.pop();
+  return P}
+function lineThrough(x,y){var b=trace(x,y,-1,1500).reverse(),f=trace(x,y,1,1500);return b.concat(f.slice(1))}
+function sub(P,st){var o=[P[0]],i,j,a,b,d,n;for(i=1;i<P.length;i++){a=P[i-1];b=P[i];d=Math.hypot(b[0]-a[0],b[1]-a[1]);n=Math.max(1,Math.round(d/st));for(j=1;j<=n;j++)o.push([a[0]+(b[0]-a[0])*j/n,a[1]+(b[1]-a[1])*j/n])}return o}
+function wob(P,seed,amp,closed){var out=[],s=0,n=P.length,L=0,i,l1=30+(seed*13)%14,l2=11+(seed*7)%6,p1=seed*1.7,p2=seed*2.9;
+  if(closed)for(i=1;i<n;i++)L+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]);
+  for(i=0;i<n;i++){if(i>0)s+=Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]);
+    var a=P[Math.max(0,i-1)],b=P[Math.min(n-1,i+1)],tx=b[0]-a[0],ty=b[1]-a[1],tl=Math.hypot(tx,ty)||1,d=amp*(Math.sin(s/l1+p1)+0.6*Math.sin(s/l2+p2));
+    if(closed)d*=Math.max(0,Math.min(1,s/30,(L-s)/30));
+    out.push([P[i][0]-ty/tl*d,P[i][1]+tx/tl*d])}
+  return out}
+function path(P){ctx.beginPath();for(var i=0;i<P.length;i++){if(i)ctx.lineTo(P[i][0],P[i][1]);else ctx.moveTo(P[i][0],P[i][1])}}
+function pline(P,col,lw){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';path(P);ctx.stroke()}
+function chev(x,y,a,col,len,lw){ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+  ctx.moveTo(x-len*Math.cos(a-0.5),y-len*Math.sin(a-0.5));ctx.lineTo(x,y);ctx.lineTo(x-len*Math.cos(a+0.5),y-len*Math.sin(a+0.5));ctx.stroke()}
+function blob(cx,cy,r,seed){var P=[],n=44,i,t,rr;for(i=0;i<=n;i++){t=i/n*6.2832;rr=r*(1+0.035*Math.sin(3*t+seed*1.3)+0.022*Math.sin(7*t+seed*2.1));P.push([cx+rr*Math.cos(t),cy+rr*Math.sin(t)])}return P}
+function txt(s,x,y,col,size,al,font){ctx.font=font||(size+'px '+HAND);ctx.textAlign=al||'left';ctx.textBaseline='middle';ctx.lineJoin='round';
+  ctx.strokeStyle=C.paper;ctx.lineWidth=7;ctx.strokeText(s,x,y);ctx.fillStyle=col;ctx.fillText(s,x,y)}
+function fline(P,seed,col,lw,hl){if(P.length<4)return;var W=wob(P,seed,1.2,false),cum=[0],i;
+  if(hl){ctx.globalAlpha=0.95;pline(W,C.hl,lw+9);ctx.globalAlpha=1}
+  pline(W,col,lw);
+  for(i=1;i<W.length;i++)cum.push(cum[i-1]+Math.hypot(W[i][0]-W[i-1][0],W[i][1]-W[i-1][1]));
+  var tot=cum[cum.length-1];if(tot<120)return;
+  [0.25,0.5,0.75].forEach(function(f){var t=f*tot,j=1;while(j<cum.length-1&&cum[j]<t)j++;chev(W[j][0],W[j][1],Math.atan2(W[j][1]-W[j-1][1],W[j][0]-W[j-1][0]),col,12,lw+0.4)})}
+function needle(x,y,th,L,al,ring){ctx.save();ctx.translate(x,y);ctx.rotate(th);ctx.globalAlpha=al;ctx.lineJoin='round';ctx.strokeStyle=C.ink;ctx.lineWidth=ring?2:1.4;
+  ctx.fillStyle=C.red;ctx.beginPath();ctx.moveTo(L,0);ctx.lineTo(0,-L*0.27);ctx.lineTo(0,L*0.27);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=C.grey;ctx.beginPath();ctx.moveTo(-L,0);ctx.lineTo(0,-L*0.27);ctx.lineTo(0,L*0.27);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
+
+var FIL=[];(function(){var r=rng(7),i;for(i=0;i<6500;i++)FIL.push({x:PX0+8+r()*(PW-16),y:PY0+8+r()*(PH-16),j:r(),l:r(),k:r(),m:r()})})();
+var cache={};
+function cached(name,key,fn){if(cache[name]&&cache[name].k===key)return cache[name].v;var v=fn();cache[name]={k:key,v:v};return v}
+function magKey(){return [S.mag.x,S.mag.y,S.mag.a,S.sign].join(',')}
+
+function drawMagnetM(M,lab){var c={x:M.x,y:M.y},m={x:Math.cos(M.a),y:Math.sin(M.a)},n={x:-m.y,y:m.x},uN=M.s*HL,pN={x:c.x+M.s*PA*m.x,y:c.y+M.s*PA*m.y},pS={x:c.x-M.s*PA*m.x,y:c.y-M.s*PA*m.y};
+  function L(u,v){return [c.x+u*m.x+v*n.x,c.y+u*m.y+v*n.y]}
+  [[0,uN,C.nN],[0,-uN,C.nS]].forEach(function(h){ctx.fillStyle=h[2];path([L(h[0],-HW),L(h[1],-HW),L(h[1],HW),L(h[0],HW)]);ctx.closePath();ctx.fill()});
+  var W=wob(sub([L(-HL,-HW),L(HL,-HW),L(HL,HW),L(-HL,HW),L(-HL,-HW)],6),2+(lab==='B'?3:0),1.4,true);
+  path(W);ctx.closePath();ctx.strokeStyle=C.ink;ctx.lineWidth=3;ctx.lineJoin='round';ctx.stroke();
+  pline(wob(sub([L(0,-HW),L(0,HW)],5),4,1,false),C.ink,2);
+  ctx.font='34px '+HAND;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=C.ink;
+  ctx.fillText('N',pN.x,pN.y+2);ctx.fillText('S',pS.x,pS.y+2);
+  if(lab){var ey=HL*Math.abs(Math.sin(M.a))+HW*Math.abs(Math.cos(M.a));txt(lab,M.x,M.y+ey+26,C.ink,30,'center','italic 30px '+SERIF)}}
+function drawMagnet(){drawMagnetM({x:S.mag.x,y:S.mag.y,a:S.mag.a,s:S.sign},null)}
+function drawPaper(){var R=sub([[PX0,PY0],[PX0+PW,PY0],[PX0+PW,PY0+PH],[PX0,PY0+PH],[PX0,PY0]],6),P=wob(R,11,1.4,true);
+  ctx.fillStyle='rgba(29,29,31,0.12)';ctx.fillRect(PX0+7,PY0+8,PW,PH);
+  ctx.globalAlpha=0.78;ctx.fillStyle='#ffffff';path(P);ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+  path(P);ctx.closePath();ctx.strokeStyle=C.ink;ctx.lineWidth=2.2;ctx.lineJoin='round';ctx.stroke()}
+function buildFil(){var bk=[[],[],[],[],[]],i,k,sd,s,P,j,x,y,b,st,a,l,r=rng(5),seeds=seedsFor(30),tx,ty,tl,q;
+  function put(x,y,a,l,st){if(x<PX0+4||x>PX0+PW-4||y<PY0+4||y>PY0+PH-4||inRect(x,y,3))return;bk[Math.min(4,Math.floor(st*5))].push(x,y,a,l)}
+  for(i=0;i<3200;i++){var f=FIL[i];x=f.x;y=f.y;if(inRect(x,y,3))continue;b=Bv(x,y);st=str(b[2]);put(x,y,Math.atan2(b[1],b[0])+(f.j-0.5)*0.5*(1-0.7*st),(5+5*f.l)*(0.7+0.5*st),st*0.9)}
+  for(k=0;k<seeds.length;k++){if(seeds[k]>900)break;
+    for(s=-1;s<=1;s+=2){P=sub(lineThrough(G.c.x+s*seeds[k]*G.n.x,G.c.y+s*seeds[k]*G.n.y),7.5);
+      for(j=0;j<P.length;j++){if(r()<0.18)continue;x=P[j][0];y=P[j][1];b=Bv(x,y);st=str(b[2]);tx=b[0]/b[2];ty=b[1]/b[2];q=(r()-0.5)*3.2;
+        put(x-ty*q,y+tx*q,Math.atan2(b[1],b[0])+(r()-0.5)*0.12,(6.5+4.5*r())*(0.75+0.5*st),Math.min(1,st*1.1+0.15))}}}
+  return bk}
+function drawFilings(){var bk=cached('fil',magKey()+'|'+S.q,buildFil),i,j,A;
+  ctx.lineCap='round';ctx.lineWidth=1.7;ctx.strokeStyle=C.ink;
+  for(i=0;i<5;i++){A=bk[i];ctx.globalAlpha=0.16+0.17*i;ctx.beginPath();
+    for(j=0;j<A.length;j+=4){var cx=Math.cos(A[j+2])*A[j+3]/2,cy=Math.sin(A[j+2])*A[j+3]/2;ctx.moveTo(A[j]-cx,A[j+1]-cy);ctx.lineTo(A[j]+cx,A[j+1]+cy)}
+    ctx.stroke()}
+  ctx.globalAlpha=1}
+function drawGridArrows(){var x,y,b,st,len=24,a;
+  for(y=45;y<PY0+PH;y+=80)for(x=45;x<PX0+PW;x+=80){if(inRect(x,y,10))continue;b=Bv(x,y);st=str(b[2]);a=Math.atan2(b[1],b[0]);
+    ctx.globalAlpha=0.25+0.55*st;pline([[x-Math.cos(a)*len/2,y-Math.sin(a)*len/2],[x+Math.cos(a)*len/2,y+Math.sin(a)*len/2]],C.grey,2);
+    chev(x+Math.cos(a)*len/2,y+Math.sin(a)*len/2,a,C.grey,8,2)}
+  ctx.globalAlpha=1}
+function trueLines(){return cached('true',magKey(),function(){var out=[],sd=seedsFor(16),k,side;
+  for(k=0;k<sd.length;k++){if(sd[k]>700)break;for(side=-1;side<=1;side+=2)out.push(lineThrough(G.c.x+side*sd[k]*G.n.x,G.c.y+side*sd[k]*G.n.y))}
+  return out})}
+function drawTrueLines(){trueLines().forEach(function(P,i){fline(P,i*3+1,C.blue,2.6,false)})}
+function stampLine(s){return cached('st'+s.x+','+s.y,magKey(),function(){return lineThrough(s.x,s.y)})}
+function drawStampLines(){S.stamps.forEach(function(s,i){if(inRect(s.x,s.y,0))return;fline(stampLine(s),i*5+2,C.blue,2.6,false)})}
+function probeLine(){var p=S.probe;return cached('probe',magKey()+'|'+p.x+','+p.y,function(){return lineThrough(p.x,p.y)})}
+function drawStamps(){S.stamps.forEach(function(s){var b=Bv(s.x,s.y);needle(s.x,s.y,Math.atan2(b[1],b[0]),15,0.5+0.5*str(b[2]),false)})}
+function drawProbe(){var p=S.probe,b=Bv(p.x,p.y),R=blob(p.x,p.y,32,6);
+  ctx.fillStyle=C.paper;path(R);ctx.closePath();ctx.fill();path(R);ctx.closePath();ctx.strokeStyle=C.ink;ctx.lineWidth=2.5;ctx.stroke();
+  needle(p.x,p.y,p.th,24,1,true);
+  ctx.fillStyle=C.paper;ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,6.2832);ctx.fill();ctx.stroke();
+  var right=p.x<CW-230,up=p.y>70;txt('B = '+fB(b[2]),p.x+(right?40:-40),p.y+(up?-36:40),C.blue,26,right?'left':'right')}
+function drawMeter(){var x0=70,x1=650,y=618,b=Bv(S.probe.x,S.probe.y)[2],lab=['1 µT','10 µT','100 µT','1 mT','10 mT','100 mT','1 T'],k;
+  function X(v){return x0+(x1-x0)*clamp((Math.log(v)/Math.LN10+6)/6,0,1)}
+  pline(wob(sub([[x0,y],[x1,y]],6),8,1.2,false),C.ink,2.5);
+  for(k=0;k<7;k++){var x=x0+(x1-x0)*k/6;pline([[x,y-7],[x,y+7]],C.ink,2.2);txt(lab[k],x,y+28,C.ink,17,'center')}
+  txt('B',34,y,C.blue,30,'center','italic 30px '+SERIF);
+  var xe=X(48e-6),xp=X(b),right=xp>=xe;
+  ctx.setLineDash([5,5]);pline([[xe,y-26],[xe,y+9]],C.grey,2.2);ctx.setLineDash([]);
+  ctx.fillStyle=C.blue;ctx.strokeStyle=C.paper;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xp,y-2);ctx.lineTo(xp-9,y-20);ctx.lineTo(xp+9,y-20);ctx.closePath();ctx.stroke();ctx.fill();
+  txt('sonda '+fB(b),xp+(right?12:-12),y-32,C.blue,19,right?'left':'right');
+  txt('Země 48 µT',xe+(right?-12:12),y-32,C.grey,19,right?'right':'left')}
+
+/* ---- dva magnety: síla ze součtu dvojic pólů (rozložených po čelních stěnách) ---- */
+var NP2=64,FP2=[];(function(){var i;for(i=0;i<NP2;i++)FP2.push([((i%8+0.5)/8*2-1)*HW,((Math.floor(i/8)+0.5)/8*2-1)*HW])})();
+function facePts(M){var m0=Math.cos(M.a),m1=Math.sin(M.a),res=[],f,i,p,arr;
+  for(f=1;f>=-1;f-=2){arr=[];for(i=0;i<NP2;i++){p=FP2[i];arr.push([M.x+f*HL*m0-p[0]*m1,M.y+f*HL*m1+p[0]*m0,p[1]])}res.push(arr)}
+  return res}
+function forceCalc(A,B,q,wantPairs){var FA=facePts(A),FB=facePts(B),k=K0*q*q/(NP2*NP2)*4e6,R={F:[0,0],tau:0,pairs:[]},fa,fb,i,j,cc,fx,fy,tq,pb,pa,dx,dy,dz,r2,f;
+  for(fb=0;fb<2;fb++)for(fa=0;fa<2;fa++){cc=(fb?-1:1)*B.s*(fa?-1:1)*A.s;fx=0;fy=0;tq=0;
+    for(i=0;i<NP2;i++){pb=FB[fb][i];for(j=0;j<NP2;j++){pa=FA[fa][j];dx=pb[0]-pa[0];dy=pb[1]-pa[1];dz=pb[2]-pa[2];r2=dx*dx+dy*dy+dz*dz+1;f=cc*k/(r2*Math.sqrt(r2));
+      fx+=f*dx;fy+=f*dy;tq+=((pb[0]-B.x)*f*dy-(pb[1]-B.y)*f*dx)/2000}}
+    R.F[0]+=fx;R.F[1]+=fy;R.tau+=tq;
+    if(wantPairs)R.pairs.push({fa:fa,fb:fb,cc:cc,F:Math.hypot(fx,fy),r:Math.hypot(B.x+(fb?-1:1)*HL*Math.cos(B.a)-A.x-(fa?-1:1)*HL*Math.cos(A.a),B.y+(fb?-1:1)*HL*Math.sin(B.a)-A.y-(fa?-1:1)*HL*Math.sin(A.a))/20})}
+  return R}
+function pole(M,f){return ((f===0)===(M.s===1))?'N':'S'}
+function rectOverlap(A,B,pad){var ca=Math.cos(A.a),sa=Math.sin(A.a),cb=Math.cos(B.a),sb=Math.sin(B.a),ax=[[ca,sa],[-sa,ca],[cb,sb],[-sb,cb]],dx=B.x-A.x,dy=B.y-A.y,i,x,y,rA,rB;
+  for(i=0;i<4;i++){x=ax[i][0];y=ax[i][1];rA=HL*Math.abs(x*ca+y*sa)+HW*Math.abs(-x*sa+y*ca);rB=HL*Math.abs(x*cb+y*sb)+HW*Math.abs(-x*sb+y*cb);
+    if(Math.abs(dx*x+dy*y)>=rA+rB+pad)return false}
+  return true}
+function inRectM(M,x,y,pad){var dx=x-M.x,dy=y-M.y,u=dx*Math.cos(M.a)+dy*Math.sin(M.a),v=-dx*Math.sin(M.a)+dy*Math.cos(M.a);return Math.abs(u)<HL+pad&&Math.abs(v)<HW+pad}
+function fF(n){n=Math.abs(n);return n>=1?fm(n,2)+' N':n>=1e-3?fm(n*1e3,n>=1e-2?1:2)+' mN':fm(n*1e6,n>=1e-4?0:1)+' µN'}
+function fT(t){t=Math.abs(t);return t>=1e-3?fm(t*1e3,2)+' mN·m':fm(t*1e6,1)+' µN·m'}
+function arrow(x0,y0,dx,dy,col,lw){var l=Math.hypot(dx,dy);if(l<3)return;var ex=x0+dx,ey=y0+dy,P=wob(sub([[x0,y0],[ex,ey]],6),12,1,false);
+  pline(P,C.paper,lw+5);pline(P,col,lw);chev(ex,ey,Math.atan2(dy,dx),col,16,lw)}
+function plotData(A,B){var ex=B.x-A.x,ey=B.y-A.y,ang=Math.atan2(ey,ex),key=[A.x,A.y,A.a,A.s,B.a,B.s,S.q,Math.round(ang*360/Math.PI)].join(',');
+  return cached('fplot',key,function(){var ux=Math.cos(ang),uy=Math.sin(ang),out=[],d,Bt,R;
+    for(d=40;d<=800;d+=8){Bt={x:A.x+ux*d,y:A.y+uy*d,a:B.a,s:B.s};if(rectOverlap(A,Bt,0)){out.push(null);continue}
+      R=forceCalc(A,Bt,S.q,false);out.push([d/20,R.F[0]*ux+R.F[1]*uy])}
+    return out})}
+function drawPlot(A,B,Fr,dcm){var x0=110,x1=640,y0=620,y1=470,D=plotData(A,B),k,l;
+  function X(d){return x0+(x1-x0)*d/40}
+  function Y(f){return y0-(y0-y1)*clamp((Math.log(f)/Math.LN10+6)/7,0,1)}
+  var yl=['1 µN','10 µN','100 µN','1 mN','10 mN','100 mN','1 N','10 N'];
+  pline(wob(sub([[x0,y0],[x1,y0]],6),21,1.1,false),C.ink,2.5);pline(wob(sub([[x0,y0],[x0,y1-6]],6),22,1.1,false),C.ink,2.5);
+  for(k=0;k<8;k++){var yy=y0-(y0-y1)*k/7;pline([[x0-6,yy],[x0+6,yy]],C.ink,2);txt(yl[k],x0-12,yy,C.ink,16,'right')}
+  for(k=0;k<=4;k++){var xx=X(k*10);pline([[xx,y0-6],[xx,y0+6]],C.ink,2);txt(String(k*10),xx,y0+22,C.ink,17,'center')}
+  txt('d (cm)',x1+58,y0+22,C.ink,17,'center');txt('F',x0-6,y1-18,C.grey,28,'center','italic 28px '+SERIF);
+  var prev=null,seg=[],sgn=0;
+  function flush(){if(seg.length>1){if(sgn>0)ctx.setLineDash([9,7]);pline(seg,C.grey,3.4);ctx.setLineDash([])}seg=[]}
+  for(k=0;k<D.length;k++){var p=D[k];if(!p||Math.abs(p[1])<1e-12){flush();continue}var sg=p[1]>0?1:-1;if(sg!==sgn){flush();sgn=sg}seg.push([X(p[0]),Y(Math.abs(p[1]))])}
+  flush();
+  if(dcm<=40&&Math.abs(Fr)>1e-12){var mx=X(dcm),my=Y(Math.abs(Fr));ctx.fillStyle=C.hl;ctx.beginPath();ctx.arc(mx,my,13,0,6.2832);ctx.fill();
+    ctx.fillStyle=C.blue;ctx.strokeStyle=C.paper;ctx.lineWidth=2;ctx.beginPath();ctx.arc(mx,my,6.5,0,6.2832);ctx.fill();ctx.stroke()}
+  ctx.setLineDash([]);pline([[672,y1+18],[722,y1+18]],C.grey,3.4);txt('přitahování',734,y1+18,C.ink,19,'left');
+  ctx.setLineDash([9,7]);pline([[672,y1+50],[722,y1+50]],C.grey,3.4);ctx.setLineDash([]);txt('odpuzování',734,y1+50,C.ink,19,'left');
+  txt('složka síly ve směru spojnice středů',672,y1+92,C.grey,18,'left');txt('(natočení magnetů zůstává)',672,y1+114,C.grey,18,'left')}
+function offs(M){var nx=-Math.sin(M.a),ny=Math.cos(M.a),sd=ny<=0?1:-1;return [sd*nx*(HW+32),sd*ny*(HW+32)]}
+function drawSila(){var A=S.A,B=S.B,R=forceCalc(A,B,S.q,true),Fm=Math.hypot(R.F[0],R.F[1]),ux=B.x-A.x,uy=B.y-A.y,dd=Math.hypot(ux,uy)||1;ux/=dd;uy/=dd;
+  var Fr=R.F[0]*ux+R.F[1]*uy;SF=R;
+  drawMagnetM(A,'A');drawMagnetM(B,'B');
+  if(Fm>1e-7){var Ln=clamp(45*Math.sqrt(Fm/0.05),14,110),fx=R.F[0]/Fm,fy=R.F[1]/Fm;
+    var ob=offs(B),oa=offs(A);
+    arrow(B.x+ob[0],B.y+ob[1],fx*Ln,fy*Ln,C.grey,5);txt('F',B.x+ob[0]+fx*(Ln+20),B.y+ob[1]+fy*(Ln+20),C.grey,30,'center','italic 30px '+SERIF);
+    arrow(A.x+oa[0],A.y+oa[1],-fx*Ln,-fy*Ln,C.grey,5);txt('−F',A.x+oa[0]-fx*(Ln+26),A.y+oa[1]-fy*(Ln+26),C.grey,30,'center','italic 30px '+SERIF)}
+  if(Math.abs(R.tau)>3e-5){var rr=HL+26,s=R.tau>0?1:-1,a0=-Math.PI/2-s*0.7,a1=-Math.PI/2+s*0.7,P=[],i,t;
+    for(i=0;i<=24;i++){t=a0+(a1-a0)*i/24;P.push([B.x+rr*Math.cos(t),B.y+rr*Math.sin(t)])}
+    var W=wob(P,13,1,false);pline(W,C.paper,9);pline(W,C.grey,4.5);chev(P[24][0],P[24][1],a1+s*Math.PI/2,C.grey,16,4.5);
+    txt('τ',B.x,B.y-rr-22,C.grey,30,'center','italic 30px '+SERIF)}
+  drawPlot(A,B,Fr,dd/20);updFormulaSila(R,Fr)}
+function updFormulaSila(R,Fr){var h,i,p,Fm=Math.hypot(R.F[0],R.F[1]),A=S.A,B=S.B;
+  h='<div class="f1"><i class="g">F</i> = <i class="g">F</i><sub>NN</sub> + <i class="g">F</i><sub>SS</sub> + <i class="g">F</i><sub>NS</sub> + <i class="g">F</i><sub>SN</sub>, &nbsp;<i class="g">F</i><sub>ij</sub> = <span class="fr"><span>μ₀ (±<i class="q">q</i>)(±<i class="q">q</i>)</span><span>4π <i>r</i><sub>ij</sub>²</span></span></div><div class="f2">';
+  for(i=0;i<R.pairs.length;i++){p=R.pairs[i];h+='<i>'+pole(A,p.fa)+'</i><sub>A</sub> a <i>'+pole(B,p.fb)+'</i><sub>B</sub>: <i class="g">F</i> = '+fF(p.F)+' '+(p.cc>0?'odpuzuje':'přitahuje')+' <small>(<i>r</i> = '+fm(p.r,1)+' cm)</small><br>'}
+  h+='<i class="g">F</i> = <mark>'+fF(Fm)+'</mark> '+(Math.abs(Fr)<1e-9?'':(Fr>0?'· magnety se odpuzují':'· magnety se přitahují'))+'<br><i class="g">τ</i> = '+(Math.abs(R.tau)<3e-5?'0':fT(R.tau))+(Math.abs(R.tau)<3e-5?'':(R.tau>0?' (otáčí B po směru hodin)':' (otáčí B proti směru hodin)'))+'</div>'+
+  '<div class="f4">Součet přes 4 dvojice pólů: stejné odpuzují, opačné přitahují. Daleko od sebe se účinky N a S téměř ruší, proto síla klesá zhruba jako 1/<i>d</i>⁴. Model: dvě „nabité“ čtvercové stěny na každém magnetu.</div>';
+  if(h!==fcache){fcache=h;$('fbox').innerHTML=h}}
+var SF=null;
+
+function render(){ctx.setTransform(sc,0,0,sc,0,0);ctx.clearRect(0,0,CW,CH);updG();
+  if(S.mode==='sila'){drawSila();return}
+  if(S.paper){drawPaper();drawFilings()}
+  if(S.mode==='porov'){drawGridArrows();drawTrueLines()}
+  if(S.mode==='cary')drawStampLines();
+  if(S.paper||S.slide)fline(probeLine(),31,C.blue,3,true);
+  drawMagnet();drawStamps();drawProbe();drawMeter();updFormula()}
+
+var fcache='';
+function updFormula(){var p=S.probe,rN=dist(p,{x:G.c.x+S.sign*HL*G.m.x,y:G.c.y+S.sign*HL*G.m.y})*MPX*100,rS=dist(p,{x:G.c.x-S.sign*HL*G.m.x,y:G.c.y-S.sign*HL*G.m.y})*MPX*100,bn=faceB(p.x,p.y,1),bs=faceB(p.x,p.y,-1),b=Bv(p.x,p.y)[2],h;
+  h='<div class="f1"><i class="b">B</i> = <i class="b">B</i><sub>N</sub> + <i class="b">B</i><sub>S</sub>, &nbsp;daleko: <i class="b">B</i><sub>N,S</sub> ≈ <span class="fr"><span>μ₀ <i class="q">q</i></span><span>4π <i>r</i><sub>N,S</sub>²</span></span></div>'+
+  '<div class="f2"><i class="b">B</i><sub>N</sub> = '+fB(bn)+' <small>(<i>r</i><sub>N</sub> = '+fm(rN,1)+' cm)</small><br><i class="b">B</i><sub>S</sub> = '+fB(bs)+' <small>(<i>r</i><sub>S</sub> = '+fm(rS,1)+' cm)</small><br><i class="b">B</i> = <mark>'+fB(b)+'</mark> (vektorový součet)</div>'+
+  '<div class="f4">Model: dvě rovnoměrně „nabité“ čtvercové čelní stěny 2 × 2 cm ve vzdálenosti 10 cm; platí vně magnetu.</div>';
+  if(h!==fcache){fcache=h;$('fbox').innerHTML=h}}
+
+var needleLast=0;
+function stepNeedle(dt){var p=S.probe,b=Bv(p.x,p.y),phi=Math.atan2(b[1],b[0]),i,d;
+  if(!S.osc){if(Math.abs(adiff(phi,p.th))>1e-3||p.w){p.th=phi;p.w=0;S.dirty=true}return}
+  var kk=clamp(25*b[2]/1e-3,6,160),c=0.6*Math.sqrt(kk),h=dt/4;
+  for(i=0;i<4;i++){p.w+=(-kk*Math.sin(p.th-phi)-c*p.w)*h;p.th+=p.w*h}
+  d=Math.abs(adiff(phi,p.th));if(Math.abs(p.w)>1e-3||d>1e-3)S.dirty=true}
+function loop(t){var dt=Math.min(0.05,(t-needleLast)/1000||0.016);needleLast=t;
+  if(S.mode!=='sila')stepNeedle(dt);
+  if(S.dirty){S.dirty=false;render()}
+  requestAnimationFrame(loop)}
+
+function texts(){var m=S.mode,cap,leg,f=null,n1,n2=null,pr,sym;
+  function sw(col,txt2,dot){return '<span><i class="sw'+(dot?' dot':'')+'" style="background:'+col+'"></i>'+txt2+'</span>'}
+  if(m==='sila'){
+    cap='Táhněte magnetem B k magnetu A a otáčejte jím posuvníkem. Každý pár pólů působí silou podle 1/r²: stejné se odpuzují, opačné přitahují. Výsledná síla je součet čtyř dvojic. Magnet A cítí stejně velkou sílu opačným směrem. Moment τ otáčí magnet B do řady N–S–N–S.';
+    leg=sw(C.grey,'síla <i>F</i>')+sw(C.nN,'severní pól')+sw(C.nS,'jižní pól');
+    sym='<div class="sym"><div><i class="g">F</i> výsledná síla na magnet B (N); na A působí −<i class="g">F</i></div><div><i class="g">F</i><sub>ij</sub> síla jedné dvojice pólů, <i>i</i> z A a <i>j</i> z B (N)</div><div><i class="q">q</i> síla pólu (A·m), stejná u obou magnetů</div><div><i>r</i><sub>ij</sub> vzdálenost středů čelních stěn dvojice (m)</div><div>μ₀ permeabilita vakua, μ₀/4π = 10⁻⁷ T·m/A</div><div><i class="g">τ</i> moment síly na B (N·m) · <i>d</i> vzdálenost středů magnetů (cm)</div></div>';
+    pr='<i>q</i> = '+S.q+' A·m (oba magnety) · magnet 10 × 2 × 2 cm';
+    n1={x:48,y:44,t:'přetáhněte magnet A nebo B',a:'l'}}
+  else{
+    if(m==='kompas')cap='Kompas ukazuje směr pole tam, kde stojí, a číslo <i>B</i> jeho velikost. Přetáhněte ho kolem magnetu: <i>B</i> s rostoucí vzdáleností rychle klesá. Tlačítkem Zanechat sondu nechte jehlu na místě a pole si nakreslete sami.';
+    else if(m==='cary')cap='Každou sondou vedeme čáru tak, aby jehla ležela na její tečně. Posouvejte magnet: sondy se natočí a čáry s nimi. Přidejte sondy tam, kde mezi čarami zeje mezera.';
+    else cap='Slabé šipky a modré čáry ukazují skutečné pole. Sedí s vašimi sondami? U pólů, kde je pole nejsilnější, jsou čáry nejhustší.';
+    if(S.paper)cap+=' Piliny se v poli srovnají do řetízků podél siločar, proto je vidět, kudy čáry vedou.';
+    if(S.slide)cap+=' Po siločáře: sonda klouže po jedné čáře, <i>B</i> se přitom mění, jen jehla zůstává na tečně.';
+    leg=sw(C.red,'severní hrot jehly',true)+sw(C.blue,'siločára')+sw(C.grey,'šipka pole')+sw(C.nN,'severní pól magnetu')+sw(C.nS,'jižní pól magnetu');
+    sym='<div class="sym"><div><i class="b">B</i> magnetická indukce v místě sondy (T), výsledek součtu</div><div><i class="b">B</i><sub>N</sub>, <i class="b">B</i><sub>S</sub> příspěvek severní a jižní čelní stěny (T)</div><div><i class="q">q</i> síla pólu: „magnetický náboj“ stěny (A·m)</div><div><i>r</i><sub>N</sub>, <i>r</i><sub>S</sub> vzdálenost sondy od středu severní a jižní stěny</div><div>μ₀ permeabilita vakua, μ₀/4π = 10⁻⁷ T·m/A</div></div>';
+    pr='<i>q</i> = '+S.q+' A·m · magnet 10 × 2 × 2 cm';
+    n1={x:48,y:44,t:m==='kompas'?'přetáhněte kompas i magnet':m==='cary'?'čára vede po tečně k jehle':'modře: skutečné pole',a:'l'}}
+  $('cap').innerHTML=cap;$('leg').innerHTML=leg+sym;$('params').innerHTML=pr;
+  [[n1,'n1'],[n2,'n2']].forEach(function(z){var el=$(z[1]),o=z[0];if(!o){el.hidden=true;return}el.hidden=false;el.textContent=o.t;el.style.left=(o.x/CW*100)+'%';el.style.top=(o.y/CH*100)+'%';el.style.transform='translate(0,-50%)'});
+  fcache=''}
+function showFor(){var els=document.querySelectorAll('[data-modes]'),i;for(i=0;i<els.length;i++)els[i].hidden=els[i].getAttribute('data-modes').split(' ').indexOf(S.mode)<0}
+function setMode(m,fromHash){S.mode=m;var bs=document.querySelectorAll('#modes button'),i;for(i=0;i<bs.length;i++)bs[i].setAttribute('aria-pressed',bs[i].getAttribute('data-m')===m?'true':'false');
+  showFor();texts();S.dirty=true;if(!fromHash&&location.hash!=='#'+KEY[m])location.hash='#'+KEY[m]}
+function fromHash(){var h=location.hash.slice(1),k;for(k in KEY)if(KEY[k]===h)return k;return null}
+
+function resize(){var r=$('scene').getBoundingClientRect(),w=Math.max(200,Math.round(r.width));cv.width=Math.round(w*dpr);cv.height=Math.round(w*CH/CW*dpr);sc=cv.width/CW;S.dirty=true}
+function pos(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*CW/r.width,y:(e.clientY-r.top)*CH/r.height}}
+function nearest(P,p){var best=null,bd=1e18,i,d;for(i=0;i<P.length;i++){d=(P[i][0]-p.x)*(P[i][0]-p.x)+(P[i][1]-p.y)*(P[i][1]-p.y);if(d<bd){bd=d;best=P[i]}}return best?{x:best[0],y:best[1]}:p}
+var drag=null;
+function pushOut(){var p=S.probe,k=0;while(inRect(p.x,p.y,4)&&k++<60){var dx=p.x-G.c.x,dy=p.y-G.c.y,l=Math.hypot(dx,dy)||1;p.x+=dx/l*6;p.y+=dy/l*6}
+  S.stamps=S.stamps.filter(function(s){return !inRect(s.x,s.y,0)})}
+cv.addEventListener('pointerdown',function(e){var p=pos(e);updG();
+  if(S.mode==='sila'){if(inRectM(S.B,p.x,p.y,14))drag={t:'B',dx:S.B.x-p.x,dy:S.B.y-p.y};else if(inRectM(S.A,p.x,p.y,14))drag={t:'A',dx:S.A.x-p.x,dy:S.A.y-p.y}}
+  else if(dist(p,S.probe)<42){drag={t:'probe',dx:S.probe.x-p.x,dy:S.probe.y-p.y,line:S.slide?lineThrough(S.probe.x,S.probe.y):null}}
+  else if(inRect(p.x,p.y,16))drag={t:'mag',dx:S.mag.x-p.x,dy:S.mag.y-p.y};
+  if(drag){try{cv.setPointerCapture(e.pointerId)}catch(x){}cv.style.cursor='grabbing'}});
+cv.addEventListener('pointermove',function(e){if(!drag)return;var p=pos(e),M,O,c;
+  if(drag.t==='A'||drag.t==='B'){M=S[drag.t];O=S[drag.t==='A'?'B':'A'];
+    var ex=Math.abs(Math.cos(M.a))*HL+Math.abs(Math.sin(M.a))*HW,ey=Math.abs(Math.sin(M.a))*HL+Math.abs(Math.cos(M.a))*HW;
+    c={x:clamp(p.x+drag.dx,ex+10,CW-ex-10),y:clamp(p.y+drag.dy,ey+14,BOT-ey),a:M.a,s:M.s};
+    if(!rectOverlap(c,O,3)){M.x=c.x;M.y=c.y}}
+  else if(drag.t==='probe'){var q=drag.line?nearest(drag.line,p):{x:clamp(p.x+drag.dx,24,1016),y:clamp(p.y+drag.dy,24,556)};
+    if(!inRect(q.x,q.y,6)){S.probe.x=q.x;S.probe.y=q.y}}
+  else{var a=S.mag.a,ex2=Math.abs(Math.cos(a))*HL+Math.abs(Math.sin(a))*HW,ey2=Math.abs(Math.sin(a))*HL+Math.abs(Math.cos(a))*HW;
+    S.mag.x=clamp(p.x+drag.dx,PX0+10+ex2,PX0+PW-10-ex2);S.mag.y=clamp(p.y+drag.dy,PY0+10+ey2,PY0+PH-10-ey2);updG();pushOut()}
+  S.dirty=true});
+function endDrag(){drag=null;cv.style.cursor='grab'}
+cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
+
+function pressed(id,v){$(id).setAttribute('aria-pressed',v?'true':'false')}
+Array.prototype.forEach.call(document.querySelectorAll('#modes button'),function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-m'))})});
+$('sQ').addEventListener('input',function(){S.q=+this.value;$('oQ').textContent=S.q+' A·m';texts();S.dirty=true});
+$('bPaper').addEventListener('click',function(){S.paper=!S.paper;pressed('bPaper',S.paper);texts();S.dirty=true});
+$('bSlide').addEventListener('click',function(){S.slide=!S.slide;pressed('bSlide',S.slide);texts();S.dirty=true});
+$('bStamp').addEventListener('click',function(){if(S.stamps.length<80)S.stamps.push({x:S.probe.x,y:S.probe.y});S.dirty=true});
+$('bClear').addEventListener('click',function(){S.stamps=[];S.dirty=true});
+$('bGrid').addEventListener('click',function(){updG();S.stamps=[];var r,c;for(r=0;r<5;r++)for(c=0;c<8;c++){var x=90+c*120,y=60+r*100;if(!inRect(x,y,22))S.stamps.push({x:x,y:y})}S.dirty=true});
+$('bRot').addEventListener('click',function(){S.mag.a+=Math.PI/4;updG();pushOut();S.dirty=true});
+$('bPol').addEventListener('click',function(){S.sign=-S.sign;pressed('bPol',S.sign<0);S.dirty=true});
+$('sAng').addEventListener('input',function(){var a=+this.value;$('oAng').textContent=a+'°';S.B.a=a*Math.PI/180;
+  var ux=S.B.x-S.A.x,uy=S.B.y-S.A.y,d=Math.hypot(ux,uy)||1,k=0;ux/=d;uy/=d;while(rectOverlap(S.A,S.B,3)&&k++<300){S.B.x+=ux*4;S.B.y+=uy*4}S.dirty=true});
+$('bPolB').addEventListener('click',function(){S.B.s=-S.B.s;pressed('bPolB',S.B.s<0);S.dirty=true});
+$('bPolA').addEventListener('click',function(){S.A.s=-S.A.s;pressed('bPolA',S.A.s<0);S.dirty=true});
+$('bOsc').addEventListener('click',function(){S.osc=!S.osc;pressed('bOsc',S.osc);S.dirty=true});
+pressed('bOsc',S.osc);
+window.addEventListener('hashchange',function(){var m=fromHash();if(m&&m!==S.mode)setMode(m,true)});
+try{if(window.ResizeObserver)new ResizeObserver(resize).observe($('scene'));else window.addEventListener('resize',resize)}catch(e){window.addEventListener('resize',resize)}
+try{document.fonts.load('26px "Patrick Hand"').then(function(){S.dirty=true});document.fonts.load('italic 28px "STIX Two Text"').then(function(){S.dirty=true})}catch(e){}
+updG();var b0=Bv(S.probe.x,S.probe.y);S.probe.th=Math.atan2(b0[1],b0[0]);
+setMode(fromHash()||'kompas',true);resize();
+window.__S=S;window.__render=function(){S.dirty=true};
+requestAnimationFrame(loop);
+})();
+</script>
+</body></html>
